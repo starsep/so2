@@ -19,5 +19,8 @@ muzeum: helpers.o err.o muzeum.c
 firma: helpers.o err.o firma.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
+example%: all example%.sh
+	./$@.sh
+
 clean:
 	rm -f *.o $(OBJECTS)
