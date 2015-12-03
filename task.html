@@ -1,0 +1,318 @@
+<!DOCTYPE html>
+<html>
+
+<meta charset="UTF-8">
+<body>
+
+<h1> Zadanie 2 -- Archeo </h1>
+<font color="blue"> (ostatnie zmiany pliku 03.12.2015) </font>
+<p>
+W pewnym malutkim Kraju, zafascynowanym archeologią, jest jeden Bank i jedno Muzeum.
+Muzeum nadzoruje wszelkie Wykopaliska archeologiczne i wystawy muzealne.
+Wykopaliska są przeprowadzane przez niezależne Firmy, które poszukują Artefaktów
+i generują zyski z ich sprzedaży. Tereny przeznaczone na Wykopaliska znajdują się pod całkowitym nadzorem
+Muzeum, które wydaje pozwolenia, nadzoruje wydobycie i skupuje artefakty.
+<p>
+</p>
+Wszelkie transfery finansów związane z Artefaktami, dla bezpieczeństwa, odbywają się za pośrednictwem Banku.
+</p>
+
+
+<h2>
+Obiekty i technologie.
+</h2>
+
+<h3>
+Artefakty:
+</h3>
+
+<p>
+Artefakty są reprezentowane przez symbole będące liczbami pierwszymi, ograniczonymi przez stałą <b>A</b>.
+Wszelkie artefakty oznaczone przez liczby pierwsze ściśle większe niż A są zbyt nowe by przedstawiać jakąkolwiek wartość.
+</p>
+
+<h3>
+Tereny wykopalisk:
+</h3>
+<p>
+Teren jest dwuwymiarową tablicą nieujemnych liczb całkowitych <b>Teren[1..Dlugosc][1..Glebokosc]</b>,
+tzn. istnieje Dlugosc działek, a każda działka ma Glebokosc poziomów (poprzez działkę rozumiemy kolumnę tabeli tj. tablicę Teren[i] dla pewnego i).
+<font color="blue">  Głębokość rośnie wraz z drugim indeksem tablicy, i.e., pole Teren[i][1] jest przy powierzchni, pole Teren[i][Glebokosc] jest najniższym polem działki Teren[i]. </font>
+Każde pole tablicy zawiera liczbę reprezentującą zbiór zakopanych tam artefaktów.
+Artefakty zakopane w polu o wartości w=Teren[k][l] to zbiór będący wynikiem rozkładu na czynniki pierwsze liczby w.
+</p><p>
+Np., jeśli A = 10, w = 12 to zakopane artefakty to {2,2,3}.
+<br>
+Np., jeśli A = 100 oraz w = 103 to zbiór zakopanych artefaktów jest pusty.
+</p>
+<p>
+Z każdym polem tablicy wiąże się także szacowana wartość znajdujących się tam artefaktów, przechowywana w tablicy
+<b>Szacunek[1..Dlugosc][1..Glebokosc]</b>.
+</p>
+
+<h3>
+Firmy:
+</h3>
+
+<p>
+W kraju działa <b>N</b> firm. Każda firma jest oddzielnym procesem, posiada swoje konto w banku <b>Fsaldo</b>,
+unikalny numer <b>Fid</b> i pewną liczbę pracowników <b>Fk</b>.
+</p>
+
+<p>
+Firmy nabywają pozwolenia na poszukiwania poprzez oferty przesyłane do Muzeum.
+Każde pozwolenie jest przyznawane na Fk działek. Na każdej działce 
+pracuje dokładnie jeden pracownik, będący wątkiem procesu.
+Każda Firma może mieć maksymalnie jedno aktywne pozwolenie i jeśli go nie posiada to stara się je uzyskać.
+</p>
+</p>
+W celu złożenia oferty, Firma może się zwrócić do Muzeum o przesłanie informacji o wycenie pewnych działek.
+Prośba składa się z trzech liczb <b>(L,P,G)</b>. W odpowiedzi na prośbę Muzeum przesyła tablicę Szacunek[L..P][1..G] z szacowanymi wartościami pól,
+<font color="blue"> z szacowaną wartością dla wydobytych już pól równą 0.</font>
+</p>
+<p>
+Każda Firma może w dowolnym momencie zakończyć swoją działalność.
+Firma kończy działalność, kiedy 
+<ul>
+<li> nie ma wystarczających środków na kolejne pozwolenie (saldo na koncie mniejsze niż <b>S</b>, brak kolekcji) i brak aktywnych pozwoleń,</li>
+<li>gdy wszystkie pola zostały wydobyte i Muzeum kończy symulację</li>
+<li> lub kiedy otrzyma sygnał SIGINT.</li>
+</ul>
+Podczas kończenia działalności, Firma zwalnia wszystkie używane zasoby i generuje Raport Firmy.
+<font color="blue"> Pozwolenia także traktujemy jako zasoby.</font>
+</p>
+
+<p>
+Firmy mogą zostać zmuszone do zawieszenia działalności.
+Zawieszenie działalności oznacza zaprzestanie wydobycia przez pracowników Firmy, zatrzymaniu wysyłania i odbierania komunikatów.
+Firma zawiesza działalność po otrzymaniu sygnału SIGUSR1, a wznawia działalność po otrzymaniu SIGUSR2.
+</p>
+
+<h3>
+Muzeum:
+</h3>
+
+<p>
+Muzeum pełni dwie funkcje: jest nadzorcą wykopalisk i skupem artefaktów.
+Jako nadzorca wykopalisk przechowuje aktualny stan Terenów wykopalisk, przyznaje pozwolenia,
+obsługuje wykopaliska (delegaci) i, jeśli jakaś Firma zażąda, przesyła szacunkową wycenę wartości pól.
+Każdy delegat jest osobnym wątkiem Muzeum.
+</p>
+<p>
+Jako kupiec, Muzeum przechowuje listę zgromadzonych kolekcji, skupuje kolekcje i płaci za zakupione Artefakty.
+Muzeum ma nieograniczone fundusze.
+</p>
+<p>
+Muzeum przygotowuje także Raport Muzeum, wyświetlany na zakończenie działalności muzeum.
+Gdy następuje zakończenia działalności muzeum, Muzeum nie wydaje nowych pozwoleń, informuje Firmy, że mają zakończyć działalność,
+oczekuje aż każda firma zakończy działalność oraz generuje Raport Muzeum.
+</p>
+
+<p>
+Muzeum kończy działalność gdy 
+<ul>
+ <li> wszystkie artefakty zostaną wydobyte,</li>
+ <li> wszystkie firmy zakończą działalność,</li>
+ <li> lub otrzyma sygnał SIGINT. </li>
+</ul>
+</p>
+
+<p>
+Po zakończeniu działalności Muzeum wszystkie zasoby (w tym kolejki komunikatów) mają być zwolnione.
+</p>
+
+<h3>
+Bank:
+</h3>
+
+<p>
+Bank przechowuje listę kont Firm.
+Każde konto to para składająca się z unikalnego identyfikatora firmy <b>Fid</b> oraz jej salda <b>Fsaldo</b>.
+Do banku można wpłacać pieniądze, wypłacać pieniądze, oraz wysyłać zapytanie o saldo.
+<br>
+Implementacja komunikacji Firm z Bankiem i Muzeum z Bankiem ma dbać o to by nie było wycieków pieniędzy, tj. jedyne źródło dochodów to sprzedaż kolekcji,
+wydatków to pozwolenia, a dostęp do kont jest chroniony.
+</p>
+
+<h3>
+Sprzedaż do muzeum:
+</h3>
+<p>
+Artefakty mogą być przekazywane do muzeum jako kolekcje.
+Kolekcja jest to zbiór <b>p</b> artefaktów rodzaju <b>p</b>.
+<br>
+Np. 2 artefakty typu 2 lub 13 artefaktów typu 13.
+</p>
+<p>
+Przekazanie artefaktów następuje poprzez przesłanie wszystkich elementów kolekcji 
+do muzeum. Przesłanie może nastąpić dopiero po skompletowaniu kolekcji.
+Po odebraniu całej kolekcji Muzeum wypłaca należność w wysokości <b>10*p</b> jednostek pieniężnych.
+</p>
+
+<h3>
+Pozwolenia:
+</h3>
+<p>
+Każda Firma może prosić o pozwolenie na wydobycie.
+Prośba o wydobycie to oferta zakupu składająca się z dwu liczb <b>(Fk, Z)</b>
+gdzie Z >= S  to proponowana opłata za pozwolenie a Fk to ilość pracowników Firmy.
+Liczba <b><font color="blue"> S > 0 </font></b> jest to opłata stała, wnoszona za każde pozwolenie.
+</p>
+<p>
+Oferta jest akceptowana, jeśli Firma nie posiada innych pozwoleń oraz jeśli istnieje spójny zbiór działek 
+o numerach <b>[L..L+Fk-1]</b> (0 <= L <= L+Fk-1<= Dlugosc) i głębokość <b>G</b>, takie, że 
+<ul>
+  <li> żadna z działek [L..L+Fk-1] nie jest obecnie zarezerwowana,</li>
+  <li> szacowana wartość wszystkich niewydobytych pól Szacunek[L..L+Fk-1][1..G] jest mniejsza niż proponowana opłata, pomniejszona o opłatę stałą (Z - S), </li>
+  <li> oraz Firma ma wystarczające środki na koncie bankowym by pokryć opłatę,</li>
+</ul>
+wpp. oferta jest odrzucana.
+Opłata stała jest zawsze pobierana, niezależnie od zaakceptowania bądź odrzucenia oferty.
+</p>
+<p>
+W razie akceptacji oferty Muzeum pobiera opłatę, tworzy Delegata obsługującego pozwolenie i
+przesyła Firmie informacje niezbędne do wydobycia.
+W szczególności Muzeum przesyła Firmie numery działek oraz maksymalną głębokość wydobycia.
+Muzeum zawsze przydziela działki o najmniejszych możliwych numerach.
+Dla działek Teren[L..L+Fk-1] maksymalna głębokość wydobycia G > 0 jest przyznawana tak, by <font color="blue"> suma szacowanych wartości wszystkich niewydobytych pól Szacunek[L..L+Fk-1][1..G] </font>
+nie przekraczała oferty i oferowała maksymalną możliwą liczbę pól.
+<br>
+Uwaga: Najpierw dobieramy działki a następnie głębokość, przyznajemy niepustą liczbę pól.
+</p>
+
+<h3>
+Poszukiwania:
+</h3>
+
+<p>
+Poszukiwanie artefaktów przez Firmę jest dozwolone tylko na działkach, na których 
+Firma ma pozwolenia. Z każdym pozwoleniem jest związany Delegat Muzeum, który obsługuje 
+wykopaliska na działkach związanych z pozwoleniem.
+</p>
+<p>
+Obsługa prac powinna zachować następujący schemat:
+<ul>
+<li>
+Pracownik firmy przesyła żądanie prac na działce Teren[i], 
+</li>
+<li>
+jeśli jest możliwe wykonanie prac na działce Teren[i] to Delegat przesyła 
+symbol zbioru najwyższego niezbadanego poziomu na tej działce i oczekuje na raport
+zawierający zbiór znalezisk.
+</li>
+<li> Po akceptacji raportu, zbiór znalezisk może zostać dodany do kolekcji Firmy.
+</li>
+</ul>
+</p>
+
+<p>
+Wykonanie prac na działce jest dozwolone, jeśli 
+<ul>
+<li>numer działki Teren[i] jest zgodny z pozwoleniem,</li>
+<li>nie przekroczyliśmy dozwolonej głębokości </li>
+<li>i wszelkie wcześniejsze prace na tej działce zostały zakończone raportem zbioru znalezisk.</li>
+</ul>
+</p>
+<p>
+Gdy wszystkie poziomy działki związane z danym pozwoleniem zostaną wyeksploatowane, pozwolenie wygasa automatycznie.
+</p>
+
+<h2>
+Rozpoczęcie i zakończenie:
+</h2>
+<h3>
+Rozpoczęcie programu.
+</h3>
+<p>
+Muzeum ma zostać wywołane poleceniem 
+<br>
+./muzeum Dlugosc Glebokosc S A
+<br>
+<p>
+Muzeum ustawia opłatę stałą S, ograniczenie artefaktów A, tworzy odpowiednie kolejki komunikatów,
+a następnie ze standardowego wejścia ma odczytać 
+Dlugosc wierszy zawierających Glebokosc liczb całkowitych dodatnich, określających zbiory artefaktów w poszczególnych polach;
+oraz 
+Dlugosc wierszy zawierających Glebokosc liczb całkowitych dodatnich, określających szacowane wartości artefaktów w poszczególnych polach.
+</p>
+
+<p>
+Działalność firm rozpoczynamy poleceniem 
+<br>
+./bank F S A
+<br>
+które ze standardowego wejścia ma odczytać F wierszy zawierających dla każdej z F firm
+identyfikator firmy Fid , początkowe saldo firmy Fsaldo, oraz liczbę pracowników Fk.
+Po odczytaniu listy firm, Bank tworzy konta bankowe firm i rozpoczyna ich działanie (każda Firma to osobny proces).
+<small>(Firma przy rozpoczęciu działalności może stworzyć wątki pracowników i zakończyć je dopiero przy zakończeniu działalności.)</small>
+<br>
+Bank podczas tworzenia Firmy przekazuje jej stosowne informacje.
+</p>
+<p>
+Działalność programów kończy się po zakończeniu działalności przez wszystkie Firmy lub po wyczerpaniu wszystkich wykopalisk.
+Na zakończenie działalności Muzeum generuje Raport Muzeum, wypisywany na standardowe wyjście.
+</p>
+<p>
+Można założyć, że dane wejściowe są poprawne, że <font color="blue"> są liczbami całkowitymi dodatnimi </font> i mieszczą się w typie <b>int</b>, że Bank i Muzeum otrzymają te same wartości S i A, oraz, że
+programy ./bank i <font color="blue">./muzeum </font> <b>nie</b> zostaną uruchomione dwukrotnie.
+</p>
+<h3>
+Raport Firmy
+</h3>
+<p>
+Raport firmy to napis, który w pierwszym wierszu ma identyfikator firmy Fid i saldo Fsaldo oddzielone pojedynczą przerwą
+a w kolejnych wierszach pary typ artefaktu i liczba posiadanych artefaktów tego typu.
+</p>
+
+<p>
+Np. Firma o identyfikatorze Fid = 1, saldzie Fsaldo = 1000, posiadająca 1 artefakt typu 2, 1 artefakt typu 3 i 20 artefaktów typu 29 wygeneruje następujący raport
+<br>
+"""<br>
+1 1000<br>
+2 1<br>
+3 1<br>
+29 20<br>
+"""<br>
+(cudzysłowy nie są częścią raportu).
+</p>
+
+<h3>
+Raport Muzeum
+</h3>
+<p>
+Na raport muzeum składa się stan wykopalisk oraz Raporty Firm oddzielone pustymi wierszami.
+
+Stan wykopalisk to napis, którego j-ty symbol i-tego wiersza ma wartość
+<ul>
+ <li>0, jeśli pole Teren[i][j] zostało oczyszczone,</li>
+ <li>1, jeśli pole Teren[i][j] nie zostało oczyszczone ale jest zarezerwowane,</li>
+ <li>2, wpp.</li>
+</ul>
+Raport Muzeum ma przedstawiać spójny stan systemu.
+</p> 
+
+
+<h2>
+Technologie
+</h2>
+<p>
+Komunikacja między Firmami, Muzeum i Bankiem odbywać się może wyłącznie przy pomocy kolejek komunikatów IPC Systemu V. Chcemy by rozwiązanie korzystało ze stałej liczby kolejek.
+<br>
+Dokładny format komunikatów, komunikacja oraz synchronizacja, do ustalenia przez studenta. Do realizacji wielowątkowości należy użyć biblioteki pthreads. 
+Synchronizację między wątkami należy zapewnić wyłącznie za pomocą mechanizmów pthreads takich jak mutexy, zmienne warunkowe lub blokady rwlock.
+</p>
+<p>
+Dla potrzeb oceny poprawności rozwiązania można przyjąć, że kolejki komunikatów oraz mechanizmy pthreads są sprawiedliwe.
+Można założyć, a nie trzeba sprawdzać, że parametry wywołania programów oraz dane wejściowe są poprawne.
+</p>
+
+<h2>
+Informacje organizacyjne
+</h2>
+<p>
+Rozwiązania (tylko Makefile, pliki źródłowe i plik z opisem rozwiązania) należy nadsyłać za pomocą skryptu submit na adres: solab@mimuw.edu.pl w terminie do <font color="red"> 21 grudnia 2015</font>, 23:59.
+W przypadku wątpliwości można zadać pytanie autorowi zadania M. Przybyłko (<font color="blue">M.Przybylko&nbsp;`at'&nbsp;mimuw.edu.pl</font>). Przed zadaniem pytania warto sprawdzić, czy odpowiedź na nie nie pojawiła się na liście często zadawanych pytań.
+</p>
+
+</body>
+</html>

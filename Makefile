@@ -23,4 +23,4 @@ example%: all example%.sh
 	./$@.sh
 
 clean:
-	rm -f *.o $(OBJECTS)
+	rm -f *.o *.gch $(OBJECTS)
