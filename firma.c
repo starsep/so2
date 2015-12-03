@@ -25,6 +25,8 @@ void get_arguments(int argc, char **argv) {
 void make_raport(void) {
 	printf("%d %d\n", Fid, balance);
 	//TODO lista artefaktów
+	sleep(1);
+	exit(Fid);
 }
 
 int main(int argc, char **argv) {

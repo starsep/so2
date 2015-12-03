@@ -4,10 +4,10 @@ OBJECTS  = muzeum firma bank
 
 all: $(OBJECTS)
 
-helpers.o: helpers.c
+err.o: err.c
 	$(COMPILER) $(CFLAGS) -c $^
 
-err.o: err.c
+helpers.o: helpers.c
 	$(COMPILER) $(CFLAGS) -c $^
 
 bank: helpers.o err.o bank.c
