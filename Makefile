@@ -1,13 +1,16 @@
 COMPILER = gcc
 CFLAGS   = -pthread -Wall -Wunused -Wshadow -pedantic -O2 -std=c99 -g -D_XOPEN_SOURCE
 OBJECTS  = muzeum firma bank
-OFILES   = mutex.o helpers1.o helpers2.o err.o
+OFILES   = queue.o mutex.o helpers1.o helpers2.o err.o
 all: $(OBJECTS)
 
 err.o: err.c
 	$(COMPILER) $(CFLAGS) -c $^
 
 mutex.o: mutex.c
+	$(COMPILER) $(CFLAGS) -c $^
+
+queue.o: queue.c
 	$(COMPILER) $(CFLAGS) -c $^
 
 helpers1.o: helpers1.c
@@ -30,3 +33,9 @@ example%: all example%.sh
 
 clean:
 	rm -f *.o *.gch $(OBJECTS)
+
+test: clean all
+	./example1.sh
+
+kill:
+	killall -q -s INT muzeum bank firma

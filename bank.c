@@ -9,6 +9,8 @@
 #include <stdint.h>
 #include "helpers.h"
 #include "museum_password.h"
+#include "messages.h"
+#include "queue.h"
 
 const int F; //liczba firm
 const int S; //stała opłata
@@ -18,6 +20,9 @@ int *id; //id firmy
 int *balance; //stany kont firm
 int *workers; //liczby pracowników firm
 int *password; //hasła do kont
+
+int BANK_REQUESTS;
+int BANK_ANSWERS;
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 4) {
@@ -71,11 +76,82 @@ void cleanup(void) {
 	helpers_cleanup();
 }
 
+int find_firm(const int ID) {
+	for (int i = 0; i < F; i++) {
+		if (id[i] == ID) {
+			return i;
+		}
+	}
+	fatal("find_firm");
+	return -1;
+}
+
+void work(void) {
+	while (1) {
+		struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
+		TRY(msgrcv(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
+		//printf("WIADOMOSC TYPE: %d ID: %d PASSWORD: %d\n", (int)msg->mtype, msg->id, msg->password);
+		int firm = find_firm(msg->id);
+		if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
+
+		}
+		else if (msg->change == 0 && msg->password == password[firm]) {
+			struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
+			rsp->mtype = msg->id;
+			rsp->balance = balance[firm];
+			TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), 0));
+		}
+		else if (msg->change < 0 && msg->password == password[firm]) {
+
+		}
+		//printf("Bank: I'm still alive\n");
+	}
+}
+
+void signal_handler(int sig) {
+	switch (sig) {
+		case SIGINT:
+			cleanup();
+			exit(0);
+			break;
+		case SIGUSR1:
+			break;
+		case SIGUSR2:
+			break;
+	}
+}
+
+void make_signal_handlers(void) {
+	struct sigaction setup_action;
+	sigset_t block_mask;
+
+	sigemptyset(&block_mask);
+	setup_action.sa_handler = signal_handler;
+	setup_action.sa_mask = block_mask;
+	setup_action.sa_flags = 0;
+	TRY(sigaction(SIGINT, &setup_action, NULL));
+	TRY(sigaction(SIGUSR1, &setup_action, NULL));
+	TRY(sigaction(SIGUSR2, &setup_action, NULL));
+
+	sigaddset(&block_mask, SIGINT);
+	TRY(sigprocmask(SIG_BLOCK, &block_mask, NULL));
+
+	TRY(sigprocmask(SIG_UNBLOCK, &block_mask, NULL));
+}
+
+void get_queues(void) {
+	queue_get(&BANK_ANSWERS, BANK_ANSWERS_KEY);
+	queue_get(&BANK_REQUESTS, BANK_REQUESTS_KEY);
+}
+
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
 	get_data();
+	get_queues();
 	make_passwords();
+	make_signal_handlers();
 	exec_companies();
+	work();
 	cleanup();
 	return 0;
 }

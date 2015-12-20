@@ -3,10 +3,17 @@
 #include <sys/types.h>
 #include <sys/ipc.h>
 #include <sys/msg.h>
+#include <stdbool.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <string.h>
+#include <pthread.h>
+#include <stdint.h>
 #include "museum_password.h"
 #include "helpers.h"
 #include "messages.h"
 #include "mutex.h"
+#include "queue.h"
 
 const int ARTEFACT_MULTIPLIER = 10;
 
@@ -15,8 +22,9 @@ const int depth; //głębokość
 const int S; //stała opłata
 const int A; //ograniczenie artefaktów
 
-const int BANK_QUEUE_ID;
-const int COLLECTION_QUEUE_ID;
+int BANK_REQUESTS;
+int BANK_ANSWERS;
+int COLLECTION_QUEUE_ID;
 
 int **artefacts; //tablica Teren[][]
 int **estimate; //tablica Szacunek[][]
@@ -64,20 +72,54 @@ void get_input(void) {
 }
 
 void make_queues(void) {
-	*((int *) &BANK_QUEUE_ID) = msgget(BANK_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
-	if (BANK_QUEUE_ID == -1) {
-		fatal("msgget(BANK)");
-	}
-	*((int *) &COLLECTION_QUEUE_ID) = msgget(COLLECTION_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
-	if (COLLECTION_QUEUE_ID == -1) {
-		fatal("msgget(COLLECTION)");
-	}
+	queue_create(&BANK_ANSWERS, BANK_ANSWERS_KEY);
+	queue_create(&BANK_REQUESTS, BANK_REQUESTS_KEY);
+	queue_create(&COLLECTION_QUEUE_ID, COLLECTION_QUEUE_KEY);
 }
 
 void cleanup(void) {
-	TRY(msgctl(BANK_QUEUE_ID, IPC_RMID, NULL));
-	TRY(msgctl(COLLECTION_QUEUE_ID, IPC_RMID, NULL));
+	queue_remove(BANK_ANSWERS);
+	queue_remove(BANK_REQUESTS);
+	queue_remove(COLLECTION_QUEUE_ID);
 	mutex_cleanup();
+}
+
+void work(void) {
+	while (1) {
+		sleep(1);
+		//printf("Museum: I'm still alive\n");
+	}
+}
+
+void signal_handler(int sig) {
+	switch(sig) {
+		case SIGINT:
+			cleanup();
+			exit(0);
+			break;
+		case SIGUSR1:
+			break;
+		case SIGUSR2:
+			break;
+	}
+}
+
+void make_signal_handlers(void) {
+	struct sigaction setup_action;
+	sigset_t block_mask;
+
+	sigemptyset (&block_mask);
+	setup_action.sa_handler = signal_handler;
+	setup_action.sa_mask = block_mask;
+	setup_action.sa_flags = 0;
+	TRY(sigaction (SIGINT, &setup_action, NULL));
+	TRY(sigaction (SIGUSR1, &setup_action, NULL));
+	TRY(sigaction (SIGUSR2, &setup_action, NULL));
+
+	sigaddset(&block_mask, SIGINT);
+	TRY(sigprocmask(SIG_BLOCK, &block_mask, NULL));
+
+	TRY(sigprocmask(SIG_UNBLOCK, &block_mask, NULL));
 }
 
 int main(int argc, char **argv) {
@@ -85,5 +127,7 @@ int main(int argc, char **argv) {
 	make_queues();
 	alloc_data();
 	get_input();
+	make_signal_handlers();
+	work();
 	cleanup();
 }
