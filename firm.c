@@ -1,5 +1,5 @@
 #include <stdio.h>
-#include <stdlib.h>
+#include "helpers.h"
 
 const int Fid; //id firmy
 const int workers; //liczba pracowników
@@ -28,7 +28,7 @@ void make_raport(void) {
 	printf("%d %d\n", Fid, balance);
 	//TODO lista artefaktów
 	//sleep(1);
-	exit(Fid);
+	//exit(Fid);
 }
 
 int main(int argc, char **argv) {

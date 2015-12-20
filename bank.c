@@ -8,7 +8,6 @@
 #include <pthread.h>
 #include <stdint.h>
 #include "helpers.h"
-#include "err.h"
 #include "museum_password.h"
 
 const int F; //liczba firm
@@ -19,8 +18,6 @@ int *id; //id firmy
 int *balance; //stany kont firm
 int *workers; //liczby pracowników firm
 int *password; //hasła do kont
-
-int err; //zmienna do trzymania kodów błędu
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 4) {
@@ -35,9 +32,9 @@ void get_arguments(int argc, char **argv) {
 }
 
 void get_data(void) {
-	id = (int *) malloc(sizeof(int) * F);
-	balance = (int *) malloc(sizeof(int) * F);
-	workers = (int *) malloc(sizeof(int) * F);
+	id = (int *) err_malloc(sizeof(int) * F);
+	balance = (int *) err_malloc(sizeof(int) * F);
+	workers = (int *) err_malloc(sizeof(int) * F);
 	for (int i = 0; i < F; i++) {
 		if (scanf("%d%d%d", &id[i], &balance[i], &workers[i]) < 3) {
 			fatal("scanf: not enough data");
@@ -47,7 +44,7 @@ void get_data(void) {
 
 void make_passwords(void) {
 	srand(time(NULL));
-	password = (int *) malloc(sizeof(int) * F);
+	password = (int *) err_malloc(sizeof(int) * F);
 	for (int i = 0; i < F; i++) {
 		password[i] = rand() % RAND_MAX;
 	}
@@ -57,10 +54,11 @@ void exec_companies(void) {
 	for (int i = 0; i < F; i++) {
 		pid_t pid = fork();
 		if (pid < 0) {
-			syserr(pid, "fork");
+			fatal("fork");
 		}
 		if (pid != 0) {
-			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A), itoa(password[i]), NULL);
+			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A),
+				  itoa(password[i]), NULL);
 			fatal("execl");
 		}
 	}

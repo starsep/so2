@@ -4,8 +4,13 @@
 const int BANK_QUEUE_ID = 1001;
 const int COLLECTION_QUEUE_ID = 1002;
 
-const int TRANSFER_MESSAGE = 1;
-const int CHECK_BALANCE_MESSAGE = 2;
+const long TRANSFER_MESSAGE = 1;
+const long CHECK_BALANCE_MESSAGE = 2;
+
+struct message {
+	long mtype; //typ wiadomości
+	void *mtext; //zawartość
+};
 
 struct transfer {
 	int id; //nr firmy

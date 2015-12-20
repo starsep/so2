@@ -1,22 +1,28 @@
 COMPILER = gcc
-CFLAGS   = -pthread -Wall -Wunused -Wshadow -pedantic -O2 -std=c99 -g
+CFLAGS   = -pthread -Wall -Wunused -Wshadow -pedantic -O2 -std=c99 -g -D_XOPEN_SOURCE
 OBJECTS  = muzeum firma bank
-
+OFILES   = mutex.o helpers1.o helpers2.o err.o
 all: $(OBJECTS)
 
 err.o: err.c
 	$(COMPILER) $(CFLAGS) -c $^
 
-helpers.o: helpers.c
+mutex.o: mutex.c
 	$(COMPILER) $(CFLAGS) -c $^
 
-bank: helpers.o err.o bank.c
+helpers1.o: helpers1.c
+	$(COMPILER) $(CFLAGS) -c $^
+
+helpers2.o: helpers2.c
+	$(COMPILER) $(CFLAGS) -c $^
+
+bank: $(OFILES) bank.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
-muzeum: helpers.o err.o museum.c
+muzeum: $(OFILES) museum.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
-firma: helpers.o err.o firm.c
+firma: $(OFILES) firm.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
 example%: all example%.sh
