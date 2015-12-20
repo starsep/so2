@@ -5,7 +5,7 @@
 <body>
 
 <h1> Zadanie 2 -- Archeo </h1>
-<font color="blue"> (ostatnie zmiany pliku 03.12.2015) </font>
+<font color="blue"> (ostatnie zmiany pliku 15.12.2015) </font>
 <p>
 W pewnym malutkim Kraju, zafascynowanym archeologią, jest jeden Bank i jedno Muzeum.
 Muzeum nadzoruje wszelkie Wykopaliska archeologiczne i wystawy muzealne.
@@ -160,11 +160,12 @@ Liczba <b><font color="blue"> S > 0 </font></b> jest to opłata stała, wnoszona
 </p>
 <p>
 Oferta jest akceptowana, jeśli Firma nie posiada innych pozwoleń oraz jeśli istnieje spójny zbiór działek 
-o numerach <b>[L..L+Fk-1]</b> (0 <= L <= L+Fk-1<= Dlugosc) i głębokość <b>G</b>, takie, że 
+o numerach <b>[L..L+Fk-1]</b> (0 <font color="blue"> < </font>L <= L+Fk-1<= Dlugosc) i głębokość <b>G</b>, takie, że 
 <ul>
   <li> żadna z działek [L..L+Fk-1] nie jest obecnie zarezerwowana,</li>
   <li> szacowana wartość wszystkich niewydobytych pól Szacunek[L..L+Fk-1][1..G] jest mniejsza niż proponowana opłata, pomniejszona o opłatę stałą (Z - S), </li>
   <li> oraz Firma ma wystarczające środki na koncie bankowym by pokryć opłatę,</li>
+  <li><font color="blue"> co najmniej jedno pole jest niewydobyte, </font></li>
 </ul>
 wpp. oferta jest odrzucana.
 Opłata stała jest zawsze pobierana, niezależnie od zaakceptowania bądź odrzucenia oferty.
@@ -177,7 +178,7 @@ Muzeum zawsze przydziela działki o najmniejszych możliwych numerach.
 Dla działek Teren[L..L+Fk-1] maksymalna głębokość wydobycia G > 0 jest przyznawana tak, by <font color="blue"> suma szacowanych wartości wszystkich niewydobytych pól Szacunek[L..L+Fk-1][1..G] </font>
 nie przekraczała oferty i oferowała maksymalną możliwą liczbę pól.
 <br>
-Uwaga: Najpierw dobieramy działki a następnie głębokość, przyznajemy niepustą liczbę pól.
+Uwaga: Najpierw dobieramy działki a następnie głębokość; przyznajemy niepustą liczbę pól, <font color="blue">z co najmniej jednym niewydobytym polem</font>.
 </p>
 
 <h3>
@@ -200,7 +201,7 @@ jeśli jest możliwe wykonanie prac na działce Teren[i] to Delegat przesyła
 symbol zbioru najwyższego niezbadanego poziomu na tej działce i oczekuje na raport
 zawierający zbiór znalezisk.
 </li>
-<li> Po akceptacji raportu, zbiór znalezisk może zostać dodany do kolekcji Firmy.
+<li> Po akceptacji raportu, zbiór znalezisk może zostać dodany do kolekcji Firmy, <font color ="red"> a pole zostaje oznaczone jako wydobyte</font>.
 </li>
 </ul>
 </p>

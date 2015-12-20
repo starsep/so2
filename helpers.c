@@ -69,4 +69,5 @@ void helpers_cleanup(void) {
 		}
 		free(pointers_to_free.pointers);
 	}
+	pointers_to_free.pointers = NULL;
 }

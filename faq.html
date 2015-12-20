@@ -8,7 +8,7 @@ FAQ -- Archeo
 </h1>
 
 <p>
-<font color="blue"> (ostatnie zmiany pliku 28.11.2015) </font>
+<font color="blue"> (ostatnie zmiany pliku 15.12.2015) </font>
 </p>
 
 <h3>
@@ -30,7 +30,46 @@ Oczywiście należy zadbać to, by wymagania określone w treści zadania (takie
 <h3>2. Przy zapytaniu o szacunki firma nie dowiaduje się czy pola które otrzymała są już wydobyte, tak?</h3>
 <p>
 Ustalmy, że pola już wydobyte mają szacunkową wartość <b>0</b>. Ta wartość zastępuje wartość z tablicy Szacunek.
+</p>
 
+<h2> 08.12.2015 </h2>
+<h3>3. Czy Muzeum może przyznać pozwolenie z wszystkimi polami wydobytymi?</h3>
+<p>
+Nie, nie można przyznać pozwolenia, które nie ma niewydobytych pól.
+Treść zadania dotycząca pozwoleń została uaktualniona.
+</p>
+
+<h2> 14.12.2015 </h2>
+<h3>4. Czy można założyć, że sumaryczna liczba wątków mieści się w typie long?</h3>
+
+<p>
+Podczas implementacji można założyć następujące limity:
+<ul>
+<li>0 < Glebokosc, Dlugosc < 1 000 000; </li>
+<li>0 < F, S, A < 1 000 000;</li>
+<li>0 < Fid <= F, dla każdego identyfikatora firmy Fid;</li>
+<li> 0 < Teren[i][j], Szacunek[i][j], Fsaldo < 2^31, dla każdego pola o współrzędnych i,j;</li>
+
+</ul>
+</p>
+
+<h2> 15.12.2015 </h2>
+<h3>5. Czy do zadania zaliczeniowego można używać C++?</h3>
+
+<p>
+	Nie. Tak jak na laboratoriach, piszemy w C.
+</p>
+<h3>6. Jeżeli pracownik innej firmy rozpoczął pracę, jednak zanim dostarczył raport, jego firma została zawieszona sygnałem SIGINT, to dana działka już na zawsze będzie zablokowana?</h3>
+
+<p>
+	Nie. W treści jest napisane, że Firmy przed zakończeniem działalności zwalniają zasoby, zatem także i pozwolenia mają zostać anulowane.
+	Co do pytania o to, kiedy pole staje się wydobyte to przyjmujemy, że pole staje się wydobyte wraz z przesłaniem akceptacji raportu przez Delegata.
+</p>
+
+<h3>7. Czy po otrzymaniu sygnału SIGUSR1 Firma ma natychmiastowo zaprzestać działań?</h3>
+<p>
+	Tak i nie. Firma ma nie wysyłać nowych komunikatów, ma nie rozpoczynać oczekiwania na nowe komunikaty
+	oraz ma, jak najszybciej, zablokować działania pracowników. <b>Nie jest prawdą, że po *każdej* instrukcji należy</b> weryfikować czy firma została zawieszona.
 </p>
 </body>
 </html>

@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include "museum_password.h"
 
 const int length; //długość
 const int depth; //głębokość

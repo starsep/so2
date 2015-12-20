@@ -9,6 +9,7 @@
 #include <stdint.h>
 #include "helpers.h"
 #include "err.h"
+#include "museum_password.h"
 
 const int F; //liczba firm
 const int S; //stała opłata
@@ -19,9 +20,6 @@ int *balance; //stany kont firm
 int *workers; //liczby pracowników firm
 
 int err; //zmienna do trzymania kodów błędu
-
-pthread_t *threads;
-pthread_attr_t attr;
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 4) {
@@ -46,38 +44,19 @@ void get_data(void) {
 	}
 }
 
-void *exec_company(void *arg) {
-	const int i = (intptr_t) arg;
-	execl("firma", "firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A), NULL);
-	fatal("execl");
-	return (void *) 1;
-}
-
-
 void exec_companies(void) {
-	if ((err = pthread_attr_init(&attr)) != 0) {
-		syserr(err, "pthread_attr init failed");
-	}
-	if ((err = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE)) != 0) {
-		syserr(err, "pthread_setdetachstate failed");
-	}
-	threads = (pthread_t *) malloc(sizeof(pthread_t) * F);
 	for (int i = 0; i < F; i++) {
-		if ((err = pthread_create(&threads[i], &attr, exec_company, (void *) (intptr_t) i)) != 0) {
-			syserr(err, "pthread_create failed");
+		pid_t pid = fork();
+		if (pid < 0) {
+			syserr(pid, "fork");
+		}
+		if (pid != 0) {
+			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A), NULL);
+			fatal("execl");
 		}
 	}
 }
 
-void wait_for_end(void) {
-	int retval;
-	for (int i = 0; i < F; i++) {
-		if ((err = pthread_join(threads[i], (void **) &retval)) != 0) {
-			syserr(err, "pthread_join failed");
-		}
-		printf("%d\n", retval);
-	}
-}
 
 void cleanup(void) {
 	free(id);
@@ -89,6 +68,6 @@ int main(int argc, char **argv) {
 	get_arguments(argc, argv);
 	get_data();
 	exec_companies();
-	wait_for_end();
 	cleanup();
+	return 0;
 }

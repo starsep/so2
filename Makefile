@@ -13,7 +13,7 @@ helpers.o: helpers.c
 bank: helpers.o err.o bank.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
-muzeum: helpers.o err.o muzeum.c
+muzeum: helpers.o err.o museum.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
 firma: helpers.o err.o firma.c
