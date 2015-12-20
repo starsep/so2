@@ -1,12 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <pthread.h>
-#include <stdint.h>
 #include "helpers.h"
 #include "museum_password.h"
 #include "messages.h"
@@ -87,22 +78,27 @@ int find_firm(const int ID) {
 }
 
 void work(void) {
-	while (1) {
+	while (true) {
 		struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
 		TRY(msgrcv(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
 		//printf("WIADOMOSC TYPE: %d ID: %d PASSWORD: %d\n", (int)msg->mtype, msg->id, msg->password);
 		int firm = find_firm(msg->id);
 		if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
-
+			balance[firm] += msg->change;
 		}
-		else if (msg->change == 0 && msg->password == password[firm]) {
+		else if (msg->change < 0 && msg->password == password[firm]) {
+			if (balance[firm] + msg->change < 0) {
+				puts("Nie ma tylu środków");
+			}
+			else {
+				balance[firm] += msg->change;
+			}
+		}
+		if (msg->change <= 0 && msg->password == password[firm]) {
 			struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
 			rsp->mtype = msg->id;
 			rsp->balance = balance[firm];
 			TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), 0));
-		}
-		else if (msg->change < 0 && msg->password == password[firm]) {
-
 		}
 		//printf("Bank: I'm still alive\n");
 	}
@@ -140,8 +136,8 @@ void make_signal_handlers(void) {
 }
 
 void get_queues(void) {
-	queue_get(&BANK_ANSWERS, BANK_ANSWERS_KEY);
-	queue_get(&BANK_REQUESTS, BANK_REQUESTS_KEY);
+	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
+	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
 }
 
 int main(int argc, char **argv) {

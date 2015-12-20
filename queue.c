@@ -1,21 +1,23 @@
 #include "queue.h"
 
-void queue_get(int *id, const int key) {
-	*id = msgget(key, 0644);
-	if (*id == -1) {
+int queue_get(const int key) {
+	int id = msgget(key, 0644);
+	if (id == -1) {
 		fatal("queue_get");
 	}
+	return id;
 }
 
-void queue_create(int *id, const int key) {
-	*id = msgget(key, 0644);
-	if (*id != -1) {
-		queue_remove(*id);
+int queue_create(const int key) {
+	int id = msgget(key, 0644);
+	if (id != -1) {
+		queue_remove(id);
 	}
-	*id = msgget(key, 0644 | IPC_CREAT | IPC_EXCL);
-	if (*id == -1) {
+	id = msgget(key, 0644 | IPC_CREAT | IPC_EXCL);
+	if (id == -1) {
 		fatal("queue_create");
 	}
+	return id;
 }
 
 void queue_remove(const int id) {

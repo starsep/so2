@@ -1,14 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <sys/types.h>
-#include <sys/ipc.h>
-#include <sys/msg.h>
-#include <stdbool.h>
-#include <unistd.h>
-#include <sys/wait.h>
-#include <string.h>
-#include <pthread.h>
-#include <stdint.h>
 #include "museum_password.h"
 #include "helpers.h"
 #include "messages.h"
@@ -72,9 +61,9 @@ void get_input(void) {
 }
 
 void make_queues(void) {
-	queue_create(&BANK_ANSWERS, BANK_ANSWERS_KEY);
-	queue_create(&BANK_REQUESTS, BANK_REQUESTS_KEY);
-	queue_create(&COLLECTION_QUEUE_ID, COLLECTION_QUEUE_KEY);
+	BANK_ANSWERS = queue_create(BANK_ANSWERS_KEY);
+	BANK_REQUESTS = queue_create(BANK_REQUESTS_KEY);
+	COLLECTION_QUEUE_ID = queue_create(COLLECTION_QUEUE_KEY);
 }
 
 void cleanup(void) {
@@ -85,7 +74,7 @@ void cleanup(void) {
 }
 
 void work(void) {
-	while (1) {
+	while (true) {
 		sleep(1);
 		//printf("Museum: I'm still alive\n");
 	}

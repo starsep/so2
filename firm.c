@@ -38,17 +38,17 @@ void make_raport(void) {
 }
 
 
-
 void get_queues(void) {
-	queue_get(&COLLECTION_QUEUE_ID, COLLECTION_QUEUE_KEY);
-	queue_get(&BANK_REQUESTS, BANK_REQUESTS_KEY);
-	queue_get(&BANK_ANSWERS, BANK_ANSWERS_KEY);
+	COLLECTION_QUEUE_ID = queue_get(COLLECTION_QUEUE_KEY);
+	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
+	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
 }
 
-int get_balance(void) {
+int withdraw(int money) {
 	struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
 	msg->mtype = 1;
 	msg->id = Fid;
+	msg->change = money;
 	msg->password = password;
 	TRY(msgsnd(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0));
 
@@ -57,8 +57,12 @@ int get_balance(void) {
 	return rsp->balance;
 }
 
+int get_balance(void) {
+	return withdraw(0);
+}
+
 void work() {
-	while (1) {
+	while (true) {
 		printf("AKTUALNY STAN: %d\n", get_balance());
 		//printf("Firma %d: I'm still alive!\n", Fid);
 		sleep(1);
