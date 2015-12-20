@@ -1,8 +1,8 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-const int BANK_QUEUE_KEY = 1001;
-const int COLLECTION_QUEUE_KEY = 1002;
+const int BANK_QUEUE_KEY = 1201;
+const int COLLECTION_QUEUE_KEY = 1202;
 
 const long TRANSFER_MESSAGE = 1;
 const long CHECK_BALANCE_MESSAGE = 2;

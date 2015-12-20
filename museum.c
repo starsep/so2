@@ -66,11 +66,11 @@ void get_input(void) {
 void make_queues(void) {
 	*((int *) &BANK_QUEUE_ID) = msgget(BANK_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
 	if (BANK_QUEUE_ID == -1) {
-		fatal("msgget");
+		fatal("msgget(BANK)");
 	}
 	*((int *) &COLLECTION_QUEUE_ID) = msgget(COLLECTION_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
 	if (COLLECTION_QUEUE_ID == -1) {
-		fatal("msgget");
+		fatal("msgget(COLLECTION)");
 	}
 }
 
