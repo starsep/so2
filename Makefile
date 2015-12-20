@@ -16,7 +16,7 @@ bank: helpers.o err.o bank.c
 muzeum: helpers.o err.o museum.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
-firma: helpers.o err.o firma.c
+firma: helpers.o err.o firm.c
 	$(COMPILER) $(CFLAGS) -o $@ $^
 
 example%: all example%.sh

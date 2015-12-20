@@ -18,6 +18,7 @@ const int A; //ograniczenie artefaktów
 int *id; //id firmy
 int *balance; //stany kont firm
 int *workers; //liczby pracowników firm
+int *password; //hasła do kont
 
 int err; //zmienna do trzymania kodów błędu
 
@@ -44,6 +45,14 @@ void get_data(void) {
 	}
 }
 
+void make_passwords(void) {
+	srand(time(NULL));
+	password = (int *) malloc(sizeof(int) * F);
+	for (int i = 0; i < F; i++) {
+		password[i] = rand() % RAND_MAX;
+	}
+}
+
 void exec_companies(void) {
 	for (int i = 0; i < F; i++) {
 		pid_t pid = fork();
@@ -51,7 +60,7 @@ void exec_companies(void) {
 			syserr(pid, "fork");
 		}
 		if (pid != 0) {
-			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A), NULL);
+			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A), itoa(password[i]), NULL);
 			fatal("execl");
 		}
 	}
@@ -67,6 +76,7 @@ void cleanup(void) {
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
 	get_data();
+	make_passwords();
 	exec_companies();
 	cleanup();
 	return 0;
