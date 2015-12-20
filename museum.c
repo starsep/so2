@@ -1,7 +1,12 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/ipc.h>
+#include <sys/msg.h>
 #include "museum_password.h"
 #include "helpers.h"
+#include "messages.h"
+#include "mutex.h"
 
 const int ARTEFACT_MULTIPLIER = 10;
 
@@ -9,6 +14,9 @@ const int length; //długość
 const int depth; //głębokość
 const int S; //stała opłata
 const int A; //ograniczenie artefaktów
+
+const int BANK_QUEUE_ID;
+const int COLLECTION_QUEUE_ID;
 
 int **artefacts; //tablica Teren[][]
 int **estimate; //tablica Szacunek[][]
@@ -55,8 +63,27 @@ void get_input(void) {
 	}
 }
 
+void make_queues(void) {
+	*((int *) &BANK_QUEUE_ID) = msgget(BANK_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
+	if (BANK_QUEUE_ID == -1) {
+		fatal("msgget");
+	}
+	*((int *) &COLLECTION_QUEUE_ID) = msgget(COLLECTION_QUEUE_KEY, IPC_CREAT | IPC_EXCL);
+	if (COLLECTION_QUEUE_ID == -1) {
+		fatal("msgget");
+	}
+}
+
+void cleanup(void) {
+	TRY(msgctl(BANK_QUEUE_ID, IPC_RMID, NULL));
+	TRY(msgctl(COLLECTION_QUEUE_ID, IPC_RMID, NULL));
+	mutex_cleanup();
+}
+
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
+	make_queues();
 	alloc_data();
 	get_input();
+	cleanup();
 }

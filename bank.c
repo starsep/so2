@@ -58,7 +58,7 @@ void exec_companies(void) {
 		}
 		if (pid != 0) {
 			execl("./firma", "./firma", itoa(id[i]), itoa(balance[i]), itoa(workers[i]), itoa(S), itoa(A),
-				  itoa(password[i]), NULL);
+				itoa(password[i]), NULL);
 			fatal("execl");
 		}
 	}

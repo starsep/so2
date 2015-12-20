@@ -31,7 +31,8 @@ static void add_pointer(void *ptr) {
 	mutex_wait(HELPERS_MUTEX);
 	if (pointers_to_free.size >= pointers_to_free.reserved) {
 		pointers_to_free.reserved *= 2;
-		pointers_to_free.pointers = (void **) realloc(pointers_to_free.pointers, sizeof(void *) * pointers_to_free.reserved);
+		pointers_to_free.pointers = (void **) realloc(pointers_to_free.pointers,
+			sizeof(void *) * pointers_to_free.reserved);
 	}
 	pointers_to_free.pointers[pointers_to_free.size++] = ptr;
 	mutex_release(HELPERS_MUTEX);

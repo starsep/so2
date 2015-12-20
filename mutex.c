@@ -5,7 +5,9 @@
 #include <sys/ipc.h>
 #include <sys/sem.h>
 
-static int mutex_number = 1234;
+#define MUTEX_BEGIN 1234
+
+static int mutex_number = MUTEX_BEGIN;
 
 int mutex_create(void) {
 	int mutex = semget(mutex_number++, 1, 0644 | IPC_CREAT);
@@ -33,5 +35,13 @@ void mutex_release(int id) {
 	release_op->sem_flg = 0;
 	if (semop(id, release_op, 1) == -1) {
 		fatal("semop(release)");
+	}
+}
+
+void mutex_cleanup(void) {
+	int cp =  mutex_number;
+	mutex_number = MUTEX_BEGIN;
+	for (int i = MUTEX_BEGIN; i < cp; i++) {
+		TRY(semctl(i, 0, IPC_RMID, NULL));
 	}
 }
