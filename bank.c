@@ -7,13 +7,16 @@ const int F; //liczba firm
 const int S; //stała opłata
 const int A; //ograniczenie artefaktów
 
-int *id; //id firmy
+int *id; //id firm
 int *balance; //stany kont firm
 int *workers; //liczby pracowników firm
 int *password; //hasła do kont
 
+int firm; //nr aktualnej firmy
+
 int BANK_REQUESTS;
 int BANK_ANSWERS;
+int BANK_MUSEUM;
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 4) {
@@ -73,32 +76,62 @@ int find_firm(const int ID) {
 			return i;
 		}
 	}
-	fatal("find_firm");
 	return -1;
+}
+
+void check_balance(const struct bank_request *msg) {
+	if (msg->password == password[firm]) {
+		struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
+		rsp->mtype = msg->id;
+		rsp->balance = balance[firm];
+		TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), 0));
+	}
+}
+
+void transfer(const struct bank_request *msg) {
+	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
+	rsp->mtype = msg->id;
+	rsp->balance = TRANSFER_OK;
+	if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
+		balance[firm] += msg->change;
+	}
+	TRY(msgsnd(BANK_MUSEUM, rsp, sizeof(struct account_balance) - sizeof(long), 0));
+	free(rsp);
+}
+
+void withdraw(const struct bank_request *msg) {
+	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
+	rsp->mtype = msg->id;
+	rsp->balance = WITHDRAW_BAD;
+	if (msg->change < 0 && msg->password == password[firm] && balance[firm] + msg->change >= 0) {
+		rsp->balance = WITHDRAW_OK;
+		balance[firm] += msg->change;
+	}
+	TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance), 0));
+	TRY(msgsnd(BANK_MUSEUM, rsp, sizeof(struct account_balance), 0));
+	free(rsp);
 }
 
 void work(void) {
 	while (true) {
 		struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
 		TRY(msgrcv(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
-		//printf("WIADOMOSC TYPE: %d ID: %d PASSWORD: %d\n", (int)msg->mtype, msg->id, msg->password);
-		int firm = find_firm(msg->id);
-		if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
-			balance[firm] += msg->change;
-		}
-		else if (msg->change < 0 && msg->password == password[firm]) {
-			if (balance[firm] + msg->change < 0) {
-				puts("Nie ma tylu środków");
-			}
-			else {
-				balance[firm] += msg->change;
-			}
-		}
-		if (msg->change <= 0 && msg->password == password[firm]) {
-			struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-			rsp->mtype = msg->id;
-			rsp->balance = balance[firm];
-			TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), 0));
+		firm = find_firm(msg->id);
+		switch (msg->mtype) {
+			case CHECK_BALANCE:
+				check_balance(msg);
+				break;
+			case TRANSFER:
+				transfer(msg);
+				break;
+			case WITHDRAW:
+				withdraw(msg);
+				check_balance(msg);
+				break;
+			case MUSEUM_END:
+				cleanup();
+				exit(0);
+				break;
 		}
 		//printf("Bank: I'm still alive\n");
 	}
@@ -117,35 +150,18 @@ void signal_handler(int sig) {
 	}
 }
 
-void make_signal_handlers(void) {
-	struct sigaction setup_action;
-	sigset_t block_mask;
-
-	sigemptyset(&block_mask);
-	setup_action.sa_handler = signal_handler;
-	setup_action.sa_mask = block_mask;
-	setup_action.sa_flags = 0;
-	TRY(sigaction(SIGINT, &setup_action, NULL));
-	TRY(sigaction(SIGUSR1, &setup_action, NULL));
-	TRY(sigaction(SIGUSR2, &setup_action, NULL));
-
-	sigaddset(&block_mask, SIGINT);
-	TRY(sigprocmask(SIG_BLOCK, &block_mask, NULL));
-
-	TRY(sigprocmask(SIG_UNBLOCK, &block_mask, NULL));
-}
-
 void get_queues(void) {
 	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
 	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
+	BANK_MUSEUM = queue_get(BANK_MUSEUM_KEY);
 }
 
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
+	make_signal_handlers(signal_handler);
 	get_data();
 	get_queues();
 	make_passwords();
-	make_signal_handlers();
 	exec_companies();
 	work();
 	cleanup();

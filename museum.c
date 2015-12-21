@@ -13,7 +13,10 @@ const int A; //ograniczenie artefaktów
 
 int BANK_REQUESTS;
 int BANK_ANSWERS;
+int BANK_MUSEUM;
 int COLLECTION_QUEUE_ID;
+int MUSEUM_REQUESTS;
+int MUSEUM_ANSWERS;
 
 int **artefacts; //tablica Teren[][]
 int **estimate; //tablica Szacunek[][]
@@ -61,27 +64,60 @@ void get_input(void) {
 }
 
 void make_queues(void) {
-	BANK_ANSWERS = queue_create(BANK_ANSWERS_KEY);
-	BANK_REQUESTS = queue_create(BANK_REQUESTS_KEY);
-	COLLECTION_QUEUE_ID = queue_create(COLLECTION_QUEUE_KEY);
+	for (int i = QUEUE_KEYS_BEGIN + 1; i < QUEUE_KEYS_END; i++) {
+		queue_create(i);
+	}
+	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
+	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
+	BANK_MUSEUM = queue_get(BANK_MUSEUM_KEY);
+	COLLECTION_QUEUE_ID = queue_get(COLLECTION_QUEUE_KEY);
+	MUSEUM_ANSWERS = queue_get(MUSEUM_ANSWERS_KEY);
+	MUSEUM_REQUESTS = queue_get(MUSEUM_REQUESTS_KEY);
 }
 
 void cleanup(void) {
-	queue_remove(BANK_ANSWERS);
-	queue_remove(BANK_REQUESTS);
-	queue_remove(COLLECTION_QUEUE_ID);
+	for (int i = QUEUE_KEYS_BEGIN + 1; i < QUEUE_KEYS_END; i++) {
+		queue_remove(queue_get(i));
+	}
 	mutex_cleanup();
+}
+
+void send_collection(const struct museum_request *msg) {
+	struct bank_request *bank_rqst = (struct bank_request *) err_malloc(sizeof(struct bank_request));
+	bank_rqst->mtype = TRANSFER;
+	bank_rqst->id = msg->id;
+	bank_rqst->change = ARTEFACT_MULTIPLIER * msg->p;
+	bank_rqst->password = MUSEUM_PASSWORD;
+	TRY(msgsnd(BANK_REQUESTS, bank_rqst, sizeof(struct bank_request) - sizeof(long), 0));
+
+	struct account_balance *confirmation = (struct account_balance *) err_malloc(sizeof(struct account_balance));
+	TRY(msgrcv(BANK_MUSEUM, confirmation, sizeof(struct account_balance) - sizeof(long), 0, 0));
+
+	free(bank_rqst);
+	free(confirmation);
+}
+
+void ask_estimate(const struct museum_request *msg) {
+
 }
 
 void work(void) {
 	while (true) {
-		sleep(1);
-		//printf("Museum: I'm still alive\n");
+		struct museum_request *msg = (struct museum_request *) err_malloc(sizeof(struct museum_request));
+		TRY(msgrcv(MUSEUM_REQUESTS, msg, sizeof(struct museum_request) - sizeof(long), 0, 0));
+		switch (msg->mtype) {
+			case SEND_COLLECTION:
+				send_collection(msg);
+				break;
+			case ASK_ESTIMATE:
+				ask_estimate(msg);
+				break;
+		}
 	}
 }
 
 void signal_handler(int sig) {
-	switch(sig) {
+	switch (sig) {
 		case SIGINT:
 			cleanup();
 			exit(0);
@@ -93,30 +129,12 @@ void signal_handler(int sig) {
 	}
 }
 
-void make_signal_handlers(void) {
-	struct sigaction setup_action;
-	sigset_t block_mask;
-
-	sigemptyset (&block_mask);
-	setup_action.sa_handler = signal_handler;
-	setup_action.sa_mask = block_mask;
-	setup_action.sa_flags = 0;
-	TRY(sigaction (SIGINT, &setup_action, NULL));
-	TRY(sigaction (SIGUSR1, &setup_action, NULL));
-	TRY(sigaction (SIGUSR2, &setup_action, NULL));
-
-	sigaddset(&block_mask, SIGINT);
-	TRY(sigprocmask(SIG_BLOCK, &block_mask, NULL));
-
-	TRY(sigprocmask(SIG_UNBLOCK, &block_mask, NULL));
-}
-
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
+	make_signal_handlers(signal_handler);
 	make_queues();
 	alloc_data();
 	get_input();
-	make_signal_handlers();
 	work();
 	cleanup();
 }

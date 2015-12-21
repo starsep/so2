@@ -14,6 +14,9 @@ int COLLECTION_QUEUE_ID = -1;
 
 int balance; //saldo firmy
 
+bool firm_suspended;
+pthread_cond_t *not_suspended_firm;
+pthread_mutex_t *mutex;
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 7) {
@@ -37,6 +40,16 @@ void make_raport(void) {
 	//exit(Fid);
 }
 
+void cleanup(void) {
+	make_raport();
+	if ((pthread_mutex_destroy(mutex) != 0)) {
+		fatal("pthread_mutex_init");
+	}
+	if (pthread_cond_destroy(not_suspended_firm) != 0) {
+		fatal("pthread_cond_init");
+	}
+}
+
 
 void get_queues(void) {
 	COLLECTION_QUEUE_ID = queue_get(COLLECTION_QUEUE_KEY);
@@ -45,12 +58,12 @@ void get_queues(void) {
 }
 
 int withdraw(int money) {
-	struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
-	msg->mtype = 1;
-	msg->id = Fid;
-	msg->change = money;
-	msg->password = password;
-	TRY(msgsnd(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0));
+	struct bank_request *rqst =(struct bank_request *) err_malloc(sizeof(struct bank_request));
+	rqst->mtype = (money == 0) ? CHECK_BALANCE : WITHDRAW;
+	rqst->id = Fid;
+	rqst->change = money;
+	rqst->password = password;
+	TRY(msgsnd(BANK_REQUESTS, rqst, sizeof(struct bank_request) - sizeof(long), 0));
 
 	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
 	TRY(msgrcv(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), Fid, 0));
@@ -61,6 +74,21 @@ int get_balance(void) {
 	return withdraw(0);
 }
 
+void signal_handler(int sig) {
+	switch (sig) {
+		case SIGINT:
+			cleanup();
+			exit(0);
+			break;
+		case SIGUSR1:
+			firm_suspended = true;
+			break;
+		case SIGUSR2:
+			firm_suspended = false;
+			break;
+	}
+}
+
 void work() {
 	while (true) {
 		printf("AKTUALNY STAN: %d\n", get_balance());
@@ -69,10 +97,24 @@ void work() {
 	}
 }
 
+void init(void) {
+	mutex = (pthread_mutex_t *) err_malloc(sizeof(pthread_mutex_t));
+	if ((pthread_mutex_init(mutex, NULL) != 0)) {
+		fatal("pthread_mutex_init");
+	}
+	not_suspended_firm = (pthread_cond_t *) err_malloc(sizeof(pthread_cond_t));
+	if (pthread_cond_init(not_suspended_firm, NULL) != 0) {
+		fatal("pthread_cond_init");
+	}
+	//TRY(pthread_condattr_destroy(cond_attr));
+}
+
 int main(int argc, char **argv) {
 	get_arguments(argc, argv);
+	init();
+	make_signal_handlers(signal_handler);
 	get_queues();
 	work();
-	make_raport();
+	cleanup();
 	return 0;
 }
