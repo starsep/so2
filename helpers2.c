@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 //Funkcje pomocnicze
 
 #include "helpers1.h"

@@ -1,20 +1,23 @@
+//Filip Czaplicki 359081
 #include "queue.h"
 
+static const int PERMISSIONS = 0644;
+
 int queue_get(const int key) {
-	int id = msgget(key, 0644);
-	if (id == -1) {
+	int id = msgget(key, PERMISSIONS);
+	if (id == INVALID) {
 		fatal("queue_get");
 	}
 	return id;
 }
 
 void queue_create(const int key) {
-	int id = msgget(key, 0644);
-	if (id != -1) {
+	int id = msgget(key, PERMISSIONS);
+	if (id != INVALID) {
 		queue_remove(id);
 	}
-	id = msgget(key, 0644 | IPC_CREAT | IPC_EXCL);
-	if (id == -1) {
+	id = msgget(key, PERMISSIONS | IPC_CREAT | IPC_EXCL);
+	if (id == INVALID) {
 		fatal("queue_create");
 	}
 }

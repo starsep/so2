@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 #include "helpers.h"
 #include "messages.h"
 #include "queue.h"
@@ -68,15 +69,37 @@ int withdraw(int money) {
 	rqst.id = Fid;
 	rqst.change = money;
 	rqst.password = password;
-	TRY(msgsnd(BANK_REQUESTS, &rqst, sizeof(struct bank_request) - sizeof(long), 0));
+	TRY(msgsnd(BANK_REQUESTS, &rqst, SIZE(bank_request), 0));
 
 	struct account_balance rsp;
-	TRY(msgrcv(BANK_ANSWERS, &rsp, sizeof(struct account_balance) - sizeof(long), Fid, 0));
+	TRY(msgrcv(BANK_ANSWERS, &rsp, SIZE(account_balance), Fid, 0));
 	return rsp.balance;
 }
 
 int get_balance(void) {
 	return withdraw(0);
+}
+
+void send_excavation_request(const int z) {
+	struct excavation_request request;
+	request.mtype = ASK_EXCAVATION;
+	request.id = Fid;
+	request.cost = z;
+	request.g = 0;
+	request.workers = workers;
+	TRY(msgsnd(MUSEUM_REQUESTS, &request, SIZE(excavation_request), 0));
+
+	struct excavation_answer answer;
+	TRY(msgrcv(MUSEUM_ANSWERS, &answer, SIZE(excavation_answer), Fid, 0));
+
+	printf("BEGIN: %d DEPTH: %d\n", answer.begin, answer.depth);
+	withdraw(answer.begin == INVALID ? S : z);
+	struct transfer_confirmation transfer_status;
+	TRY(msgrcv(BANK_ANSWERS, &transfer_status, SIZE(transfer_confirmation), Fid, 0));
+	if (transfer_status.status == WITHDRAW_BAD) {
+		return;
+	}
+
 }
 
 int get_estimate(int l, int p, int g) {
@@ -86,13 +109,13 @@ int get_estimate(int l, int p, int g) {
 	ask_est.l = l;
 	ask_est.p = p;
 	ask_est.g = g;
-	TRY(msgsnd(MUSEUM_REQUESTS, &ask_est, sizeof(struct museum_request) - sizeof(long), 0));
+	TRY(msgsnd(MUSEUM_REQUESTS, &ask_est, SIZE(museum_request), 0));
 
 	int sum = 0;
 	struct estimate_message est_msg;
 	for (int i = l - 1; i < p; i++) {
 		for (int j = 0; j < g; j++) {
-			TRY(msgrcv(MUSEUM_ANSWERS, &est_msg, sizeof(struct estimate_message) - sizeof(long), Fid, 0));
+			TRY(msgrcv(MUSEUM_ANSWERS, &est_msg, SIZE(estimate_message), Fid, 0));
 			sum += est_msg.estimate;
 			//printf("%d%c", est_msg.estimate, j == g - 1 ? '\n' : ' ');
 		}
@@ -115,11 +138,31 @@ void signal_handler(int sig) {
 	}
 }
 
+void sell_collections(void) {
+	//TODO
+}
+
+bool ask_on(void) {
+	struct museum_request request;
+	request.mtype = ASK_ON;
+	request.id = Fid;
+	TRY(msgsnd(MUSEUM_REQUESTS, &request, SIZE(museum_request), 0));
+
+	struct simulation_response response;
+	TRY(msgrcv(MUSEUM_ANSWERS, &response, SIZE(simulation_response), Fid, 0));
+	return response.status;
+}
+
 void work() {
-	while (true) {
-		//get_balance();
-		printf("AKTUALNY STAN: %d\n", get_balance());
+	while (ask_on()) {
+		sell_collections();
+		balance = get_balance();
+		if (balance < S) {
+			break;
+		}
+		printf("AKTUALNY STAN: %d\n", balance);
 		printf("SUM: %d\n", get_estimate(1, 2, 2));
+		send_excavation_request(42);
 		//printf("Firma %d: I'm still alive!\n", Fid);
 		sleep(3);
 	}
@@ -134,7 +177,6 @@ void init(void) {
 	if (pthread_cond_init(not_suspended_firm, NULL) != 0) {
 		fatal("pthread_cond_init");
 	}
-	//TRY(pthread_condattr_destroy(cond_attr));
 }
 
 int main(int argc, char **argv) {

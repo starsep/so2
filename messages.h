@@ -1,8 +1,9 @@
+//Filip Czaplicki 359081
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
 enum Queues {
-	QUEUE_KEYS_BEGIN = 6301,
+	QUEUE_KEYS_BEGIN = 6121,
 	BANK_ANSWERS_KEY,
 	BANK_REQUESTS_KEY,
 	BANK_MUSEUM_KEY,
@@ -19,8 +20,10 @@ enum BankOperations {
 };
 
 enum MuseumOperations {
-	SEND_COLLECTION = 1,
-	ASK_ESTIMATE
+	ASK_ESTIMATE = 1,
+	ASK_EXCAVATION,
+	ASK_ON,
+	SEND_COLLECTION
 };
 
 enum {
@@ -44,6 +47,20 @@ struct museum_request {
 	int g;
 };
 
+struct excavation_request {
+	long mtype;
+	int id; //nr firmy przesyłającej
+	int workers; //liczba pracowników
+	int cost; //opłata proponowana
+	int g; //nic nie znaczy, wielkość z museum_request ma się zgadzać
+};
+
+struct excavation_answer {
+	long mtype;
+	int begin; //pierwsza działka
+	int depth; //głębokośc
+};
+
 struct estimate_message {
 	long mtype;
 	int estimate;
@@ -52,6 +69,16 @@ struct estimate_message {
 struct account_balance {
 	long mtype;
 	int balance; //stan konta
+};
+
+struct transfer_confirmation {
+	long mtype;
+	int status;
+};
+
+struct simulation_response {
+	long mtype;
+	bool status;
 };
 
 

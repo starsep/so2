@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 #ifndef QUEUE_H
 #define QUEUE_H
 
@@ -14,6 +15,7 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "err.h"
+#include "helpers1.h"
 
 int queue_get(const int key);
 void queue_create(const int key);

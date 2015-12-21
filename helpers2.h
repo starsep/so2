@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 //Funkcje pomocnicze2
 #ifndef HELPERS2_H
 #define HELPERS2_H

@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 #ifndef _ERR_
 #define _ERR_
 

@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 #include "helpers.h"
 #include "museum_password.h"
 #include "messages.h"
@@ -77,7 +78,7 @@ int find_firm(const int ID) {
 			return i;
 		}
 	}
-	return -1;
+	return INVALID;
 }
 
 void check_balance(const struct bank_request *msg) {
@@ -86,7 +87,7 @@ void check_balance(const struct bank_request *msg) {
 		memset(&rsp, 0, sizeof(struct account_balance));
 		rsp.mtype = msg->id;
 		rsp.balance = balance[firm];
-		TRY(msgsnd(BANK_ANSWERS, &rsp, sizeof(struct account_balance) - sizeof(long), 0));
+		TRY(msgsnd(BANK_ANSWERS, &rsp, SIZE(account_balance), 0));
 	}
 }
 
@@ -97,7 +98,7 @@ void transfer(const struct bank_request *msg) {
 	if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
 		balance[firm] += msg->change;
 	}
-	TRY(msgsnd(BANK_MUSEUM, &rsp, sizeof(struct account_balance) - sizeof(long), 0));
+	TRY(msgsnd(BANK_MUSEUM, &rsp, SIZE(account_balance), 0));
 }
 
 void withdraw(const struct bank_request *msg) {
@@ -108,14 +109,15 @@ void withdraw(const struct bank_request *msg) {
 		rsp.balance = WITHDRAW_OK;
 		balance[firm] += msg->change;
 	}
-	TRY(msgsnd(BANK_ANSWERS, &rsp, sizeof(struct account_balance), 0));
-	TRY(msgsnd(BANK_MUSEUM, &rsp, sizeof(struct account_balance), 0));
+	TRY(msgsnd(BANK_ANSWERS, &rsp, SIZE(account_balance), 0));
+	rsp.mtype = MUSEUM_ID;
+	TRY(msgsnd(BANK_MUSEUM, &rsp, SIZE(account_balance), 0));
 }
 
 void work(void) {
 	while (true) {
 		struct bank_request msg;
-		TRY(msgrcv(BANK_REQUESTS, &msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
+		TRY(msgrcv(BANK_REQUESTS, &msg, SIZE(bank_request), 0, 0));
 		firm = find_firm(msg.id);
 		switch (msg.mtype) {
 			case CHECK_BALANCE:

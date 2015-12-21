@@ -1,3 +1,4 @@
+//Filip Czaplicki 359081
 //Funkcje pomocnicze1
 #ifndef HELPERS1_H
 #define HELPERS1_H
@@ -14,6 +15,9 @@
 #include <stdint.h>
 #include <stdio.h>
 #include "err.h"
+
+#define INVALID -1
+#define SIZE(x) (sizeof(struct x) - sizeof(long))
 
 int min(int a, int b);
 
