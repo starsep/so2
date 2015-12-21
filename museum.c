@@ -14,7 +14,6 @@ const int A; //ograniczenie artefaktów
 int BANK_REQUESTS;
 int BANK_ANSWERS;
 int BANK_MUSEUM;
-int COLLECTION_QUEUE_ID;
 int MUSEUM_REQUESTS;
 int MUSEUM_ANSWERS;
 
@@ -70,7 +69,6 @@ void make_queues(void) {
 	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
 	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
 	BANK_MUSEUM = queue_get(BANK_MUSEUM_KEY);
-	COLLECTION_QUEUE_ID = queue_get(COLLECTION_QUEUE_KEY);
 	MUSEUM_ANSWERS = queue_get(MUSEUM_ANSWERS_KEY);
 	MUSEUM_REQUESTS = queue_get(MUSEUM_REQUESTS_KEY);
 }
@@ -104,6 +102,14 @@ void send_collection(const struct museum_request *msg) {
 }
 
 void ask_estimate(const struct museum_request *msg) {
+ 	struct estimate_message est_msg;
+	est_msg.mtype = msg->id;
+	for (int i = msg->l - 1; i < msg->p; i++) {
+		for (int j = 0; j < msg->g; j++) {
+			est_msg.estimate = estimate[i][j];
+			TRY(msgsnd(MUSEUM_ANSWERS, &est_msg, sizeof(struct estimate_message) - sizeof(long), 0));
+		}
+	}
 
 }
 

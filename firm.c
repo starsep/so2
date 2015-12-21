@@ -8,9 +8,10 @@ const int S; //stała opłata
 const int A; //ograniczenie artefaktów
 const int password; //hasło do konta w banku
 
-int BANK_REQUESTS = -1;
-int BANK_ANSWERS = -1;
-int COLLECTION_QUEUE_ID = -1;
+int BANK_REQUESTS;
+int BANK_ANSWERS;
+int MUSEUM_ANSWERS;
+int MUSEUM_REQUESTS;
 
 int balance; //saldo firmy
 
@@ -54,9 +55,10 @@ void cleanup(void) {
 
 
 void get_queues(void) {
-	COLLECTION_QUEUE_ID = queue_get(COLLECTION_QUEUE_KEY);
 	BANK_REQUESTS = queue_get(BANK_REQUESTS_KEY);
 	BANK_ANSWERS = queue_get(BANK_ANSWERS_KEY);
+	MUSEUM_ANSWERS = queue_get(MUSEUM_ANSWERS_KEY);
+	MUSEUM_REQUESTS = queue_get(MUSEUM_REQUESTS_KEY);
 }
 
 int withdraw(int money) {
@@ -75,6 +77,27 @@ int withdraw(int money) {
 
 int get_balance(void) {
 	return withdraw(0);
+}
+
+int get_estimate(int l, int p, int g) {
+	struct museum_request ask_est;
+	ask_est.mtype = ASK_ESTIMATE;
+	ask_est.id = Fid;
+	ask_est.l = l;
+	ask_est.p = p;
+	ask_est.g = g;
+	TRY(msgsnd(MUSEUM_REQUESTS, &ask_est, sizeof(struct museum_request) - sizeof(long), 0));
+
+	int sum = 0;
+	struct estimate_message est_msg;
+	for (int i = l - 1; i < p; i++) {
+		for (int j = 0; j < g; j++) {
+			TRY(msgrcv(MUSEUM_ANSWERS, &est_msg, sizeof(struct estimate_message) - sizeof(long), Fid, 0));
+			sum += est_msg.estimate;
+			//printf("%d%c", est_msg.estimate, j == g - 1 ? '\n' : ' ');
+		}
+	}
+	return sum;
 }
 
 void signal_handler(int sig) {
@@ -96,8 +119,9 @@ void work() {
 	while (true) {
 		//get_balance();
 		printf("AKTUALNY STAN: %d\n", get_balance());
+		printf("SUM: %d\n", get_estimate(1, 2, 2));
 		//printf("Firma %d: I'm still alive!\n", Fid);
-		sleep(1);
+		sleep(3);
 	}
 }
 

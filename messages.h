@@ -6,7 +6,6 @@ enum Queues {
 	BANK_ANSWERS_KEY,
 	BANK_REQUESTS_KEY,
 	BANK_MUSEUM_KEY,
-	COLLECTION_QUEUE_KEY,
 	MUSEUM_ANSWERS_KEY,
 	MUSEUM_REQUESTS_KEY,
 	QUEUE_KEYS_END
@@ -43,6 +42,11 @@ struct museum_request {
 	int l;
 	int p;
 	int g;
+};
+
+struct estimate_message {
+	long mtype;
+	int estimate;
 };
 
 struct account_balance {
