@@ -2,5 +2,6 @@
 #define MUSEUM_PASSWORD_H
 
 const int MUSEUM_PASSWORD = 176629110;
+const int MUSEUM_ID = 12351;
 
 #endif //MUSEUM_PASSWORD_H

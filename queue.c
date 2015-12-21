@@ -8,7 +8,7 @@ int queue_get(const int key) {
 	return id;
 }
 
-int queue_create(const int key) {
+void queue_create(const int key) {
 	int id = msgget(key, 0644);
 	if (id != -1) {
 		queue_remove(id);
@@ -17,7 +17,6 @@ int queue_create(const int key) {
 	if (id == -1) {
 		fatal("queue_create");
 	}
-	return id;
 }
 
 void queue_remove(const int id) {

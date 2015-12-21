@@ -4,37 +4,46 @@
 #include "queue.h"
 #include <sys/types.h>
 #include <sys/ipc.h>
-#include <sys/sem.h>
 
-#define MUTEX_BEGIN 1234
-
-static int mutex_number = MUTEX_BEGIN;
-
-struct empty_message {
-	long mtype;
-};
+static int mutex_number = 0;
+static pthread_mutex_t *mutex = NULL;
+static int reserved = 0;
 
 int mutex_create(void) {
-	int mutex = queue_create(mutex_number++);
-	mutex_release(mutex);
-	return mutex;
+	int result = mutex_number++;
+	if (mutex == NULL) {
+		reserved = 1;
+		mutex = (pthread_mutex_t *) err_malloc(sizeof(pthread_mutex_t) * reserved);
+	}
+	else {
+		reserved *= 2;
+		mutex = realloc(mutex, sizeof(pthread_mutex_t) * reserved);
+		if (mutex == NULL) {
+			fatal("realloc");
+		}
+	}
+	if ((pthread_mutex_init(&mutex[result], NULL) != 0)) {
+		fatal("pthread_mutex_init");
+	}
+	return result;
 }
 
 void mutex_wait(int id) {
-	static struct empty_message msg;
-	TRY(msgrcv(id, &msg, sizeof(struct empty_message) - sizeof(long), 0, 0));
+	if (pthread_mutex_lock(&mutex[id]) != 0) {
+		fatal("pthread_mutex_lock");
+	}
 }
 
 void mutex_release(int id) {
-	static struct empty_message msg;
-	msg.mtype = 1;
-	TRY(msgsnd(id, &msg, sizeof(struct empty_message) - sizeof(long), 0));
+	if (pthread_mutex_unlock(&mutex[id]) != 0) {
+		fatal("pthread_mutex_unlock");
+	}
 }
 
 void mutex_cleanup(void) {
-	int cp =  mutex_number;
-	mutex_number = MUTEX_BEGIN;
-	for (int i = MUTEX_BEGIN; i < cp; i++) {
+	int cp = mutex_number;
+	mutex_number = 0;
+	for (int i = 0; i < cp; i++) {
 		queue_remove(i);
 	}
 }

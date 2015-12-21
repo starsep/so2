@@ -16,7 +16,7 @@
 #include "err.h"
 
 int queue_get(const int key);
-int queue_create(const int key);
+void queue_create(const int key);
 void queue_remove(int id);
 
 #endif //QUEUE_H

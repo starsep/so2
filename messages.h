@@ -1,12 +1,34 @@
 #ifndef MESSAGES_H
 #define MESSAGES_H
 
-const int BANK_ANSWERS_KEY     = 2301;
-const int BANK_REQUESTS_KEY    = 2302;
-const int COLLECTION_QUEUE_KEY = 2303;
+enum Queues {
+	QUEUE_KEYS_BEGIN = 6301,
+	BANK_ANSWERS_KEY,
+	BANK_REQUESTS_KEY,
+	BANK_MUSEUM_KEY,
+	COLLECTION_QUEUE_KEY,
+	MUSEUM_ANSWERS_KEY,
+	MUSEUM_REQUESTS_KEY,
+	QUEUE_KEYS_END
+};
 
-const long TRANSFER_MESSAGE      = 1;
-const long CHECK_BALANCE_MESSAGE = 2;
+enum BankOperations {
+	CHECK_BALANCE = 1,
+	TRANSFER,
+	WITHDRAW,
+	MUSEUM_END
+};
+
+enum MuseumOperations {
+	SEND_COLLECTION = 1,
+	ASK_ESTIMATE
+};
+
+enum {
+	WITHDRAW_BAD = 1,
+	WITHDRAW_OK,
+	TRANSFER_OK
+};
 
 struct bank_request {
 	long mtype;
@@ -15,9 +37,12 @@ struct bank_request {
 	int password; //tajne hasło podmiotu, który wysyła
 };
 
-struct collection {
+struct museum_request {
+	long mtype;
 	int id; //nr firmy przesyłającej
-	int p; //p artefaktów rodzaju p
+	int l;
+	int p;
+	int g;
 };
 
 struct account_balance {
