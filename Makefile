@@ -39,3 +39,11 @@ test: clean all
 
 kill:
 	killall -q -s INT muzeum bank firma
+
+valg:
+	valgrind --trace-children=yes ./example1.sh
+	sleep 3
+	make killvalg
+
+killvalg:
+	killall memcheck-amd64-

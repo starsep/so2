@@ -48,6 +48,8 @@ void cleanup(void) {
 	if (pthread_cond_destroy(not_suspended_firm) != 0) {
 		fatal("pthread_cond_init");
 	}
+	free(mutex);
+	free(not_suspended_firm);
 }
 
 
@@ -58,16 +60,17 @@ void get_queues(void) {
 }
 
 int withdraw(int money) {
-	struct bank_request *rqst =(struct bank_request *) err_malloc(sizeof(struct bank_request));
-	rqst->mtype = (money == 0) ? CHECK_BALANCE : WITHDRAW;
-	rqst->id = Fid;
-	rqst->change = money;
-	rqst->password = password;
-	TRY(msgsnd(BANK_REQUESTS, rqst, sizeof(struct bank_request) - sizeof(long), 0));
+	struct bank_request rqst;
+	memset(&rqst, 0, sizeof(struct bank_request));
+	rqst.mtype = (money == 0) ? CHECK_BALANCE : WITHDRAW;
+	rqst.id = Fid;
+	rqst.change = money;
+	rqst.password = password;
+	TRY(msgsnd(BANK_REQUESTS, &rqst, sizeof(struct bank_request) - sizeof(long), 0));
 
-	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-	TRY(msgrcv(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), Fid, 0));
-	return rsp->balance;
+	struct account_balance rsp;
+	TRY(msgrcv(BANK_ANSWERS, &rsp, sizeof(struct account_balance) - sizeof(long), Fid, 0));
+	return rsp.balance;
 }
 
 int get_balance(void) {
@@ -91,6 +94,7 @@ void signal_handler(int sig) {
 
 void work() {
 	while (true) {
+		//get_balance();
 		printf("AKTUALNY STAN: %d\n", get_balance());
 		//printf("Firma %d: I'm still alive!\n", Fid);
 		sleep(1);

@@ -80,21 +80,27 @@ void cleanup(void) {
 		queue_remove(queue_get(i));
 	}
 	mutex_cleanup();
+	for (int i = 0; i < length; i++) {
+		free(artefacts[i]);
+	}
+	free(artefacts);
+	for (int i = 0; i < length; i++) {
+		free(estimate[i]);
+	}
+	free(estimate);
 }
 
 void send_collection(const struct museum_request *msg) {
-	struct bank_request *bank_rqst = (struct bank_request *) err_malloc(sizeof(struct bank_request));
-	bank_rqst->mtype = TRANSFER;
-	bank_rqst->id = msg->id;
-	bank_rqst->change = ARTEFACT_MULTIPLIER * msg->p;
-	bank_rqst->password = MUSEUM_PASSWORD;
-	TRY(msgsnd(BANK_REQUESTS, bank_rqst, sizeof(struct bank_request) - sizeof(long), 0));
+	struct bank_request bank_rqst;
+	//memset(bank_rqst, 0, sizeof(struct bank_request));
+	bank_rqst.mtype = TRANSFER;
+	bank_rqst.id = msg->id;
+	bank_rqst.change = ARTEFACT_MULTIPLIER * msg->p;
+	bank_rqst.password = MUSEUM_PASSWORD;
+	TRY(msgsnd(BANK_REQUESTS, &bank_rqst, sizeof(struct bank_request) - sizeof(long), 0));
 
-	struct account_balance *confirmation = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-	TRY(msgrcv(BANK_MUSEUM, confirmation, sizeof(struct account_balance) - sizeof(long), 0, 0));
-
-	free(bank_rqst);
-	free(confirmation);
+	struct account_balance confirmation;
+	TRY(msgrcv(BANK_MUSEUM, &confirmation, sizeof(struct account_balance) - sizeof(long), 0, 0));
 }
 
 void ask_estimate(const struct museum_request *msg) {
@@ -103,14 +109,14 @@ void ask_estimate(const struct museum_request *msg) {
 
 void work(void) {
 	while (true) {
-		struct museum_request *msg = (struct museum_request *) err_malloc(sizeof(struct museum_request));
-		TRY(msgrcv(MUSEUM_REQUESTS, msg, sizeof(struct museum_request) - sizeof(long), 0, 0));
-		switch (msg->mtype) {
+		struct museum_request msg;
+		TRY(msgrcv(MUSEUM_REQUESTS, &msg, sizeof(struct museum_request) - sizeof(long), 0, 0));
+		switch (msg.mtype) {
 			case SEND_COLLECTION:
-				send_collection(msg);
+				send_collection(&msg);
 				break;
 			case ASK_ESTIMATE:
-				ask_estimate(msg);
+				ask_estimate(&msg);
 				break;
 		}
 	}

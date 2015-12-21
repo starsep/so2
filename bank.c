@@ -67,7 +67,8 @@ void exec_companies(void) {
 void cleanup(void) {
 	free(id);
 	free(balance);
-	helpers_cleanup();
+	free(workers);
+	free(password);
 }
 
 int find_firm(const int ID) {
@@ -81,52 +82,51 @@ int find_firm(const int ID) {
 
 void check_balance(const struct bank_request *msg) {
 	if (msg->password == password[firm]) {
-		struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-		rsp->mtype = msg->id;
-		rsp->balance = balance[firm];
-		TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance) - sizeof(long), 0));
+		struct account_balance rsp;
+		memset(&rsp, 0, sizeof(struct account_balance));
+		rsp.mtype = msg->id;
+		rsp.balance = balance[firm];
+		TRY(msgsnd(BANK_ANSWERS, &rsp, sizeof(struct account_balance) - sizeof(long), 0));
 	}
 }
 
 void transfer(const struct bank_request *msg) {
-	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-	rsp->mtype = msg->id;
-	rsp->balance = TRANSFER_OK;
+	struct account_balance rsp;
+	rsp.mtype = msg->id;
+	rsp.balance = TRANSFER_OK;
 	if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
 		balance[firm] += msg->change;
 	}
-	TRY(msgsnd(BANK_MUSEUM, rsp, sizeof(struct account_balance) - sizeof(long), 0));
-	free(rsp);
+	TRY(msgsnd(BANK_MUSEUM, &rsp, sizeof(struct account_balance) - sizeof(long), 0));
 }
 
 void withdraw(const struct bank_request *msg) {
-	struct account_balance *rsp = (struct account_balance *) err_malloc(sizeof(struct account_balance));
-	rsp->mtype = msg->id;
-	rsp->balance = WITHDRAW_BAD;
+	struct account_balance rsp;
+	rsp.mtype = msg->id;
+	rsp.balance = WITHDRAW_BAD;
 	if (msg->change < 0 && msg->password == password[firm] && balance[firm] + msg->change >= 0) {
-		rsp->balance = WITHDRAW_OK;
+		rsp.balance = WITHDRAW_OK;
 		balance[firm] += msg->change;
 	}
-	TRY(msgsnd(BANK_ANSWERS, rsp, sizeof(struct account_balance), 0));
-	TRY(msgsnd(BANK_MUSEUM, rsp, sizeof(struct account_balance), 0));
-	free(rsp);
+	TRY(msgsnd(BANK_ANSWERS, &rsp, sizeof(struct account_balance), 0));
+	TRY(msgsnd(BANK_MUSEUM, &rsp, sizeof(struct account_balance), 0));
 }
 
 void work(void) {
 	while (true) {
-		struct bank_request *msg = (struct bank_request *) err_malloc(sizeof(struct bank_request));
-		TRY(msgrcv(BANK_REQUESTS, msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
-		firm = find_firm(msg->id);
-		switch (msg->mtype) {
+		struct bank_request msg;
+		TRY(msgrcv(BANK_REQUESTS, &msg, sizeof(struct bank_request) - sizeof(long), 0, 0));
+		firm = find_firm(msg.id);
+		switch (msg.mtype) {
 			case CHECK_BALANCE:
-				check_balance(msg);
+				check_balance(&msg);
 				break;
 			case TRANSFER:
-				transfer(msg);
+				transfer(&msg);
 				break;
 			case WITHDRAW:
-				withdraw(msg);
-				check_balance(msg);
+				withdraw(&msg);
+				check_balance(&msg);
 				break;
 			case MUSEUM_END:
 				cleanup();
