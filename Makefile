@@ -27,3 +27,22 @@ firma: $(OFILES) firm.c
 
 clean:
 	rm -f *.o *.gch $(OBJECTS)
+	
+example%: all example%.sh
+	./$@.sh
+
+test:
+	@make -s clean
+	@make -s all
+	./example1.sh
+
+kill:
+	killall -q -s INT $(OBJECTS)
+
+valg:
+	valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes ./example1.sh
+	sleep 3
+	make killvalg
+
+killvalg:
+	killall memcheck-amd64-
