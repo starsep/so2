@@ -11,6 +11,9 @@ const int length; //długość
 const int depth; //głębokość
 const int S; //stała opłata
 const int A; //ograniczenie artefaktów
+const int F; //liczba firm
+
+int working_firms;
 
 int BANK_REQUESTS;
 int BANK_ANSWERS;
@@ -167,7 +170,7 @@ int find_depth(const int cost, const int workers, const int begin) {
 }
 
 void ask_excavation(const struct excavation_request *request) {
-	printf("GOT REQUEST FROM %d, Fk = %d, z = %d\n", request->id, request->workers, request->cost);
+	//printf("GOT REQUEST FROM %d, Fk = %d, z = %d\n", request->id, request->workers, request->cost);
 	struct excavation_answer answer;
 	answer.mtype = request->id;
 	answer.begin = find_begin(request->cost, request->workers);
@@ -176,7 +179,7 @@ void ask_excavation(const struct excavation_request *request) {
 
 	struct transfer_confirmation transfer_status;
 	TRY(msgrcv(BANK_MUSEUM, &transfer_status, SIZE(transfer_confirmation), MUSEUM_ID, 0));
-	if (transfer_status.status == WITHDRAW_BAD) {
+	if (transfer_status.status == WITHDRAW_BAD || answer.begin == INVALID) {
 		return;
 	}
 	int end = answer.begin + request->workers - 1;
@@ -188,13 +191,26 @@ void ask_excavation(const struct excavation_request *request) {
 
 void ask_on(const struct museum_request *request) {
 	struct simulation_response response;
+	memset(&response, 0, sizeof(struct simulation_response));
 	response.mtype = request->id;
 	response.status = simulation_on;
 	TRY(msgsnd(MUSEUM_ANSWERS, &response, SIZE(simulation_response), 0));
 }
 
+int get_number_of_firms(void) {
+	struct estimate_message nr;
+	TRY(msgrcv(BANK_MUSEUM, &nr, SIZE(estimate_message), MUSEUM_ID, 0));
+	return nr.estimate;
+}
+
+void firm_end(void) {
+	working_firms--;
+}
+
 void work(void) {
-	while (true) {
+	*((int *) &F) = get_number_of_firms();
+	working_firms = F;
+	while (working_firms > 0) {
 		struct museum_request msg;
 		TRY(msgrcv(MUSEUM_REQUESTS, &msg, SIZE(museum_request), 0, 0));
 		switch (msg.mtype) {
@@ -209,6 +225,9 @@ void work(void) {
 				break;
 			case ASK_ON:
 				ask_on(&msg);
+				break;
+			case FIRM_END:
+				firm_end();
 				break;
 		}
 	}

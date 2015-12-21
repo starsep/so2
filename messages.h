@@ -23,7 +23,8 @@ enum MuseumOperations {
 	ASK_ESTIMATE = 1,
 	ASK_EXCAVATION,
 	ASK_ON,
-	SEND_COLLECTION
+	SEND_COLLECTION,
+	FIRM_END
 };
 
 enum {

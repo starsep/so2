@@ -35,15 +35,23 @@ void get_arguments(int argc, char **argv) {
 	*((int *) &password) = atoi(argv[6]);
 }
 
-void make_raport(void) {
+void make_report(void) {
 	printf("%d %d\n", Fid, balance);
 	//TODO lista artefaktów
 	//sleep(1);
 	//exit(Fid);
 }
 
+void send_end(void) {
+	struct museum_request end;
+	memset(&end, 0, sizeof(struct museum_request));
+	end.mtype = FIRM_END;
+	TRY(msgsnd(MUSEUM_REQUESTS, &end, SIZE(museum_request), 0));
+}
+
 void cleanup(void) {
-	make_raport();
+	send_end();
+	make_report();
 	if ((pthread_mutex_destroy(mutex) != 0)) {
 		fatal("pthread_mutex_init");
 	}
@@ -92,7 +100,7 @@ void send_excavation_request(const int z) {
 	struct excavation_answer answer;
 	TRY(msgrcv(MUSEUM_ANSWERS, &answer, SIZE(excavation_answer), Fid, 0));
 
-	printf("BEGIN: %d DEPTH: %d\n", answer.begin, answer.depth);
+	//printf("BEGIN: %d DEPTH: %d\n", answer.begin, answer.depth);
 	withdraw(answer.begin == INVALID ? S : z);
 	struct transfer_confirmation transfer_status;
 	TRY(msgrcv(BANK_ANSWERS, &transfer_status, SIZE(transfer_confirmation), Fid, 0));
@@ -144,6 +152,7 @@ void sell_collections(void) {
 
 bool ask_on(void) {
 	struct museum_request request;
+	memset(&request, 0, sizeof(struct museum_request));
 	request.mtype = ASK_ON;
 	request.id = Fid;
 	TRY(msgsnd(MUSEUM_REQUESTS, &request, SIZE(museum_request), 0));
@@ -157,12 +166,12 @@ void work() {
 	while (ask_on()) {
 		sell_collections();
 		balance = get_balance();
-		if (balance < S) {
+		if (balance <= S) {
 			break;
 		}
 		printf("AKTUALNY STAN: %d\n", balance);
-		printf("SUM: %d\n", get_estimate(1, 2, 2));
-		send_excavation_request(42);
+		//printf("SUM: %d\n", get_estimate(1, 2, 2));
+		send_excavation_request(S + rand() % (balance - S));
 		//printf("Firma %d: I'm still alive!\n", Fid);
 		sleep(3);
 	}

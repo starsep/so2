@@ -103,18 +103,29 @@ void transfer(const struct bank_request *msg) {
 
 void withdraw(const struct bank_request *msg) {
 	struct account_balance rsp;
+	memset(&rsp, 0, sizeof(struct account_balance));
 	rsp.mtype = msg->id;
 	rsp.balance = WITHDRAW_BAD;
-	if (msg->change < 0 && msg->password == password[firm] && balance[firm] + msg->change >= 0) {
+	if (msg->change != 0 && msg->password == password[firm] && balance[firm] - msg->change >= 0) {
 		rsp.balance = WITHDRAW_OK;
-		balance[firm] += msg->change;
+		balance[firm] -= msg->change;
+		//printf("WYPLACONO %d przez %d\n", msg->change, msg->id);
 	}
 	TRY(msgsnd(BANK_ANSWERS, &rsp, SIZE(account_balance), 0));
 	rsp.mtype = MUSEUM_ID;
 	TRY(msgsnd(BANK_MUSEUM, &rsp, SIZE(account_balance), 0));
 }
 
+void send_number_of_firms(void) {
+	struct estimate_message nr;
+	memset(&nr, 0, sizeof(struct estimate_message));
+	nr.mtype = MUSEUM_ID;
+	nr.estimate = F;
+	TRY(msgsnd(BANK_MUSEUM, &nr, SIZE(estimate_message), 0));
+}
+
 void work(void) {
+	send_number_of_firms();
 	while (true) {
 		struct bank_request msg;
 		TRY(msgrcv(BANK_REQUESTS, &msg, SIZE(bank_request), 0, 0));
