@@ -2,7 +2,6 @@
 #include "museum_password.h"
 #include "helpers.h"
 #include "messages.h"
-#include "mutex.h"
 #include "queue.h"
 
 const int ARTEFACT_MULTIPLIER = 10;
@@ -20,11 +19,14 @@ int BANK_ANSWERS;
 int BANK_MUSEUM;
 int MUSEUM_REQUESTS;
 int MUSEUM_ANSWERS;
+int ARTEFACTS;
 
 int **artefacts; //tablica Teren[][]
 int **estimate; //tablica Szacunek[][]
 bool *reserved; //czy dana działka zarezerwowana
 bool simulation_on = true;
+
+pthread_attr_t attr;
 
 void get_arguments(int argc, char **argv) {
 	if (argc != 5) {
@@ -50,6 +52,12 @@ void alloc_data(void) {
 	}
 	reserved = (bool *) err_malloc(sizeof(bool) * length);
 	memset(reserved, false, sizeof(bool) * length);
+	if (pthread_attr_init(&attr) != 0) {
+		fatal("pthread_attr_init");
+	}
+	if (pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_JOINABLE) != 0) {
+		fatal("pthread_attr_setdetachstate");
+	}
 }
 
 void get_input(void) {
@@ -79,14 +87,46 @@ void make_queues(void) {
 	BANK_MUSEUM = queue_get(BANK_MUSEUM_KEY);
 	MUSEUM_ANSWERS = queue_get(MUSEUM_ANSWERS_KEY);
 	MUSEUM_REQUESTS = queue_get(MUSEUM_REQUESTS_KEY);
+	ARTEFACTS = queue_get(ARTEFACTS_KEY);
+	int RAPORT_SYNC = queue_get(RAPORT_SYNC_KEY);
+	struct empty_message token;
+	memset(&token, 0, sizeof(struct empty_message));
+	token.mtype = 42;
+	TRY(msgsnd(RAPORT_SYNC, &token, SIZE(empty_message), 0));
+}
+
+void make_report(void) {
+	int RAPORT_SYNC = queue_get(RAPORT_SYNC_KEY);
+	struct empty_message token;
+	TRY(msgrcv(RAPORT_SYNC, &token, SIZE(empty_message), 0, 0));
+	for (int i = 0; i < depth; i++) {
+		for (int j = 0; j < length; j++) {
+			int res = 2;
+			if (artefacts[j][i] == 0) {
+				res = 0;
+			}
+			else if (reserved[j]) {
+				res = 1;
+			}
+			printf("%d", res);
+		}
+		printf("\n");
+	}
 }
 
 void cleanup(void) {
+	struct bank_request request;
+	memset(&request, 0, sizeof(struct bank_request));
+	request.mtype = MUSEUM_END;
+	TRY(msgsnd(BANK_REQUESTS, &request, SIZE(bank_request), 0));
 	simulation_on = false;
+	make_report();
 	for (int i = QUEUE_KEYS_BEGIN + 1; i < QUEUE_KEYS_END; i++) {
 		queue_remove(queue_get(i));
 	}
-	mutex_cleanup();
+	if (pthread_attr_destroy(&attr) != 0) {
+		fatal("pthread_attr_destroy");
+	}
 	for (int i = 0; i < length; i++) {
 		free(artefacts[i]);
 	}
@@ -100,7 +140,7 @@ void cleanup(void) {
 
 void send_collection(const struct museum_request *msg) {
 	struct bank_request bank_rqst;
-	//memset(bank_rqst, 0, sizeof(struct bank_request));
+	memset(&bank_rqst, 0, sizeof(struct bank_request));
 	bank_rqst.mtype = TRANSFER;
 	bank_rqst.id = msg->id;
 	bank_rqst.change = ARTEFACT_MULTIPLIER * msg->p;
@@ -169,8 +209,32 @@ int find_depth(const int cost, const int workers, const int begin) {
 	return depth - 1;
 }
 
+struct Arg {
+	int begin;
+	int end;
+	int depth;
+};
+
+void *delegate(void *a) {
+	struct Arg *arg = (struct Arg *) a;
+	struct artefacts_message msg;
+	memset(&msg, 0, sizeof(struct artefacts_message));
+	for (int i = 0; i <= arg->depth; i++) {
+		for (int j = arg->begin; j <= arg->end; j++) {
+			msg.mtype = j + 1;
+			msg.value = artefacts[j][i];
+			TRY(msgsnd(ARTEFACTS, &msg, SIZE(artefacts_message), 0));
+			artefacts[j][i] = 0;
+		}
+	}
+	for (int i = arg->begin; i <= arg->end; i++) {
+		reserved[i] = false;
+	}
+	free(arg);
+	return NULL;
+}
+
 void ask_excavation(const struct excavation_request *request) {
-	//printf("GOT REQUEST FROM %d, Fk = %d, z = %d\n", request->id, request->workers, request->cost);
 	struct excavation_answer answer;
 	answer.mtype = request->id;
 	answer.begin = find_begin(request->cost, request->workers);
@@ -186,7 +250,12 @@ void ask_excavation(const struct excavation_request *request) {
 	for (int i = answer.begin; i <= end; i++) {
 		reserved[i] = true;
 	}
-
+	struct Arg *arg = (struct Arg *) err_malloc(sizeof(struct Arg));
+	arg->begin = answer.begin;
+	arg->end = end;
+	arg->depth = answer.depth;
+	pthread_t thread;
+	pthread_create(&thread, &attr, delegate, (void *) arg);
 }
 
 void ask_on(const struct museum_request *request) {

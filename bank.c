@@ -93,7 +93,7 @@ void check_balance(const struct bank_request *msg) {
 
 void transfer(const struct bank_request *msg) {
 	struct account_balance rsp;
-	rsp.mtype = msg->id;
+	rsp.mtype = MUSEUM_ID;
 	rsp.balance = TRANSFER_OK;
 	if (msg->change > 0 && msg->password == MUSEUM_PASSWORD) {
 		balance[firm] += msg->change;
@@ -105,11 +105,10 @@ void withdraw(const struct bank_request *msg) {
 	struct account_balance rsp;
 	memset(&rsp, 0, sizeof(struct account_balance));
 	rsp.mtype = msg->id;
-	rsp.balance = WITHDRAW_BAD;
+	rsp.balance = WITHDRAW_OK;
 	if (msg->change != 0 && msg->password == password[firm] && balance[firm] - msg->change >= 0) {
 		rsp.balance = WITHDRAW_OK;
 		balance[firm] -= msg->change;
-		//printf("WYPLACONO %d przez %d\n", msg->change, msg->id);
 	}
 	TRY(msgsnd(BANK_ANSWERS, &rsp, SIZE(account_balance), 0));
 	rsp.mtype = MUSEUM_ID;
@@ -146,7 +145,6 @@ void work(void) {
 				exit(0);
 				break;
 		}
-		//printf("Bank: I'm still alive\n");
 	}
 }
 

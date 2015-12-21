@@ -4,11 +4,13 @@
 
 enum Queues {
 	QUEUE_KEYS_BEGIN = 6121,
-	BANK_ANSWERS_KEY,
-	BANK_REQUESTS_KEY,
-	BANK_MUSEUM_KEY,
-	MUSEUM_ANSWERS_KEY,
-	MUSEUM_REQUESTS_KEY,
+	BANK_ANSWERS_KEY,     //odpowiedzi od muzeum
+	BANK_REQUESTS_KEY,    //zapytania do muzeum
+	BANK_MUSEUM_KEY,      //kolejka pomiędzy bankiem i muzeum
+	MUSEUM_ANSWERS_KEY,   //odpowiedzi od muzeum
+	MUSEUM_REQUESTS_KEY,  //zapytania do muzeum
+	ARTEFACTS_KEY,        //kolejka z artefaktami
+	RAPORT_SYNC_KEY,      //"binarny semafor" do synchronizacji raportów
 	QUEUE_KEYS_END
 };
 
@@ -82,5 +84,14 @@ struct simulation_response {
 	bool status;
 };
 
+struct artefacts_message {
+	long mtype;
+	int value;
+};
+
+struct empty_message {
+	long mtype;
+	bool anything;
+};
 
 #endif //MESSAGES_H

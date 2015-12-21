@@ -1,8 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="BookmarkManager">
-    <bookmark url="file://$PROJECT_DIR$/museum.c" line="4" mnemonic="3" />
-  </component>
   <component name="CMakeRunConfigurationManager" shouldGenerate="true" assignedExecutableTargets="true" buildAllGenerated="true">
     <generated>
       <config projectName="so2" targetName="all" />
@@ -16,8 +13,12 @@
   </component>
   <component name="ChangeListManager">
     <list default="true" id="8d2a59a2-5828-4742-ba7e-25f88a69c8c7" name="Default" comment="">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/dictionaries/starsep.xml" afterPath="$PROJECT_DIR$/.idea/dictionaries/starsep.xml" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/mutex.c" afterPath="" />
+      <change type="DELETED" beforePath="$PROJECT_DIR$/mutex.h" afterPath="" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/Makefile" afterPath="$PROJECT_DIR$/Makefile" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/bank.c" afterPath="$PROJECT_DIR$/bank.c" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/example1_muzeum" afterPath="$PROJECT_DIR$/example1_muzeum" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/firm.c" afterPath="$PROJECT_DIR$/firm.c" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/messages.h" afterPath="$PROJECT_DIR$/messages.h" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/museum.c" afterPath="$PROJECT_DIR$/museum.c" />
@@ -41,11 +42,11 @@
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file leaf-file-name="bank.c" pinned="false" current-in-tab="true">
+      <file leaf-file-name="bank.c" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/bank.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="0.38297874">
-              <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+            <state vertical-scroll-proportion="-0.0">
+              <caret line="0" column="2" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="2" />
               <folding>
                 <element signature="e#25#45#0" expanded="true" />
               </folding>
@@ -56,8 +57,20 @@
       <file leaf-file-name="firm.c" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/firm.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-10.071428">
-              <caret line="53" column="18" selection-start-line="53" selection-start-column="18" selection-end-line="53" selection-end-column="18" />
+            <state vertical-scroll-proportion="-7.714286">
+              <caret line="12" column="2" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="2" />
+              <folding>
+                <element signature="e#25#45#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="Makefile" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/Makefile">
+          <provider selected="true" editor-type-id="text-editor">
+            <state vertical-scroll-proportion="0.0">
+              <caret line="0" column="14" selection-start-line="0" selection-start-column="14" selection-end-line="0" selection-end-column="14" />
               <folding />
             </state>
           </provider>
@@ -67,17 +80,17 @@
         <entry file="file://$PROJECT_DIR$/messages.h">
           <provider selected="true" editor-type-id="text-editor">
             <state vertical-scroll-proportion="0.0">
-              <caret line="59" column="13" selection-start-line="59" selection-start-column="13" selection-end-line="59" selection-end-column="13" />
+              <caret line="11" column="26" selection-start-line="11" selection-start-column="26" selection-end-line="11" selection-end-column="26" />
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="museum.c" pinned="false" current-in-tab="false">
+      <file leaf-file-name="museum.c" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/museum.c">
           <provider selected="true" editor-type-id="text-editor">
-            <state vertical-scroll-proportion="-37.285713">
-              <caret line="58" column="27" selection-start-line="58" selection-start-column="27" selection-end-line="58" selection-end-column="27" />
+            <state vertical-scroll-proportion="0.09929078">
+              <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
               <folding>
                 <element signature="e#25#53#0" expanded="true" />
               </folding>
@@ -100,9 +113,7 @@
         <option value="$PROJECT_DIR$/helpers2.h" />
         <option value="$PROJECT_DIR$/err.c" />
         <option value="$PROJECT_DIR$/err.h" />
-        <option value="$PROJECT_DIR$/mutex.h" />
         <option value="$PROJECT_DIR$/helpers1.c" />
-        <option value="$PROJECT_DIR$/mutex.c" />
         <option value="$PROJECT_DIR$/museum_password.h" />
         <option value="$PROJECT_DIR$/helpers2.c" />
         <option value="$PROJECT_DIR$/queue.c" />
@@ -114,15 +125,17 @@
         <option value="$PROJECT_DIR$/example1.sh" />
         <option value="$PROJECT_DIR$/example1_muzeum" />
         <option value="$PROJECT_DIR$/faq.html" />
-        <option value="$PROJECT_DIR$/Makefile" />
         <option value="$PROJECT_DIR$/submit" />
         <option value="$PROJECT_DIR$/task.html" />
         <option value="$PROJECT_DIR$/update_task.sh" />
         <option value="$PROJECT_DIR$/example1_bank" />
+        <option value="$PROJECT_DIR$/mutex.h" />
+        <option value="$PROJECT_DIR$/mutex.c" />
+        <option value="$PROJECT_DIR$/Makefile" />
         <option value="$PROJECT_DIR$/messages.h" />
+        <option value="$PROJECT_DIR$/firm.c" />
         <option value="$PROJECT_DIR$/bank.c" />
         <option value="$PROJECT_DIR$/museum.c" />
-        <option value="$PROJECT_DIR$/firm.c" />
       </list>
     </option>
   </component>
@@ -502,20 +515,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/mutex.h">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="7" column="0" selection-start-line="7" selection-start-column="0" selection-end-line="7" selection-end-column="0" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/mutex.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="38" column="31" selection-start-line="38" selection-start-column="31" selection-end-line="38" selection-end-column="31" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/queue.c">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -612,14 +611,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/helpers1.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/submit">
       <provider selected="true" editor-type-id="text-editor">
         <state vertical-scroll-proportion="0.0">
@@ -676,46 +667,56 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/Makefile">
+    <entry file="file://$PROJECT_DIR$/bank.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="0" column="0" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
-          <folding />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/museum.c">
-      <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-37.285713">
-          <caret line="58" column="27" selection-start-line="58" selection-start-column="27" selection-end-line="58" selection-end-column="27" />
+        <state vertical-scroll-proportion="-0.0">
+          <caret line="0" column="2" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="2" />
           <folding>
-            <element signature="e#25#53#0" expanded="true" />
+            <element signature="e#25#45#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/messages.h">
+    <entry file="file://$PROJECT_DIR$/helpers1.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.0">
-          <caret line="59" column="13" selection-start-line="59" selection-start-column="13" selection-end-line="59" selection-end-column="13" />
+        <state vertical-scroll-proportion="0.10297483">
+          <caret line="5" column="0" selection-start-line="5" selection-start-column="0" selection-end-line="5" selection-end-column="0" />
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/firm.c">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="-10.071428">
-          <caret line="53" column="18" selection-start-line="53" selection-start-column="18" selection-end-line="53" selection-end-column="18" />
+        <state vertical-scroll-proportion="-7.714286">
+          <caret line="12" column="2" selection-start-line="12" selection-start-column="0" selection-end-line="12" selection-end-column="2" />
+          <folding>
+            <element signature="e#25#45#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/Makefile">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.0">
+          <caret line="0" column="14" selection-start-line="0" selection-start-column="14" selection-end-line="0" selection-end-column="14" />
           <folding />
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/bank.c">
+    <entry file="file://$PROJECT_DIR$/messages.h">
       <provider selected="true" editor-type-id="text-editor">
-        <state vertical-scroll-proportion="0.38297874">
-          <caret line="18" column="17" selection-start-line="18" selection-start-column="17" selection-end-line="18" selection-end-column="17" />
+        <state vertical-scroll-proportion="0.0">
+          <caret line="11" column="26" selection-start-line="11" selection-start-column="26" selection-end-line="11" selection-end-column="26" />
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/museum.c">
+      <provider selected="true" editor-type-id="text-editor">
+        <state vertical-scroll-proportion="0.09929078">
+          <caret line="13" column="0" selection-start-line="13" selection-start-column="0" selection-end-line="13" selection-end-column="0" />
           <folding>
-            <element signature="e#25#45#0" expanded="true" />
+            <element signature="e#25#53#0" expanded="true" />
           </folding>
         </state>
       </provider>

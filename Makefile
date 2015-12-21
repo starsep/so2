@@ -1,13 +1,10 @@
 COMPILER = gcc
 CFLAGS   = -pthread -Wall -Wunused -Wshadow -pedantic -O2 -std=c99 -g -D_XOPEN_SOURCE
-OBJECTS  = muzeum firma bank
-OFILES   = queue.o mutex.o helpers1.o helpers2.o err.o
+OBJECTS  = bank muzeum firma
+OFILES   = queue.o helpers1.o helpers2.o err.o
 all: $(OBJECTS)
 
 err.o: err.c
-	$(COMPILER) $(CFLAGS) -c $^
-
-mutex.o: mutex.c
 	$(COMPILER) $(CFLAGS) -c $^
 
 queue.o: queue.c
@@ -34,14 +31,16 @@ example%: all example%.sh
 clean:
 	rm -f *.o *.gch $(OBJECTS)
 
-test: clean all
+test:
+	@make -s clean
+	@make -s all
 	./example1.sh
 
 kill:
-	killall -q -s INT muzeum bank firma
+	killall -q -s INT $(OBJECTS)
 
 valg:
-	valgrind --trace-children=yes ./example1.sh
+	valgrind --leak-check=full --show-leak-kinds=all --trace-children=yes ./example1.sh
 	sleep 3
 	make killvalg
 
